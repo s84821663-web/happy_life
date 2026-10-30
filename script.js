@@ -3,18 +3,18 @@ const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
 
 /* ---------- داده‌ها ---------- */
 const CANS = [
-  {id:1, name:"کولا نایت",  taste:"کلاسیک تیره",  color:"#1c1c24", text:"#fff", theme:"#1c1c24", dark:true,  price:85000,  caf:150, sugar:32, cal:140, desc:"طعم کولای اصیل با ضربه‌ی انرژی خالص. برای شب‌هایی که هنوز تموم نشده."},
-  {id:2, name:"بنفش برقی",  taste:"تمشک وحشی",    color:"#7C3AED", text:"#fff", theme:"#7C3AED", dark:false, price:92000,  caf:140, sugar:28, cal:130, desc:"انفجار تمشک وحشی با حال‌وهوای بنفش. محبوب‌ترین طعم کالکشن."},
-  {id:3, name:"نارنجی آتش", taste:"پرتقال آتشین", color:"#F25C05", text:"#111", theme:"#F25C05", dark:false, price:88000,  caf:130, sugar:30, cal:135, desc:"پرتقال آتشین با تلخی خنک. انرژی‌ای که مثل آتش پخش می‌شه."},
-  {id:4, name:"زرد لیمویی", taste:"لیموی جرقه‌ای", color:"#EAE32B", text:"#111", theme:"#eab308", dark:false, price:86000,  caf:120, sugar:0,  cal:15,  desc:"لیموی جرقه‌ای، کاملاً بدون شکر. سبک، ترش، بی‌وقفه."},
-  {id:5, name:"آبی یخی",    taste:"یخ آسمانی",    color:"#38BDF8", text:"#111", theme:"#0ea5e9", dark:false, price:90000,  caf:135, sugar:26, cal:120, desc:"خنکای یخ قطبی با رگه‌ی آبی. بهترین انتخاب بعد از ورزش."},
-  {id:6, name:"سفید وانیلی",taste:"وانیل ابری",   color:"#f2f0ea", text:"#111", theme:"#94a3b8", dark:true,  price:95000,  caf:100, sugar:24, cal:110, desc:"وانیل نرم و ابریشمی. طعمی برای حال‌وهوای روشن و آرام."},
+  {id:1, name:"کولا نایت",  taste:"کلاسیک تیره",  color:"#1c1c24", text:"#fff", price:85000, caf:150, sugar:32, cal:140, desc:"طعم کولای اصیل با ضربه‌ی انرژی خالص. برای شب‌هایی که هنوز تموم نشده."},
+  {id:2, name:"بنفش برقی",  taste:"تمشک وحشی",    color:"#7C3AED", text:"#fff", price:92000, caf:140, sugar:28, cal:130, desc:"انفجار تمشک وحشی با حال‌وهوای بنفش. محبوب‌ترین طعم کالکشن."},
+  {id:3, name:"نارنجی آتش", taste:"پرتقال آتشین", color:"#F25C05", text:"#111", price:88000, caf:130, sugar:30, cal:135, desc:"پرتقال آتشین با تلخی خنک. انرژی‌ای که مثل آتش پخش می‌شه."},
+  {id:4, name:"زرد لیمویی", taste:"لیموی جرقه‌ای", color:"#EAE32B", text:"#111", price:86000, caf:120, sugar:0,  cal:15,  desc:"لیموی جرقه‌ای، کاملاً بدون شکر. سبک، ترش، بی‌وقفه."},
+  {id:5, name:"آبی یخی",    taste:"یخ آسمانی",    color:"#38BDF8", text:"#111", price:90000, caf:135, sugar:26, cal:120, desc:"خنکای یخ قطبی با رگه‌ی آبی. بهترین انتخاب بعد از ورزش."},
+  {id:6, name:"سفید وانیلی",taste:"وانیل ابری",   color:"#f2f0ea", text:"#111", price:95000, caf:100, sugar:24, cal:110, desc:"وانیل نرم و ابریشمی. طعمی برای حال‌وهوای روشن و آرام."},
 ];
 
 const REVIEWS = [
   {stars:5, txt:"طعم بنفش برقی واقعاً یه چیز دیگه‌ست! بسته‌بندی هم عالیه.", who:"سارا م. — تهران"},
   {stars:5, txt:"باکس ترکیبی گرفتم، هر شش تا طعم جذاب بودن. ارسالش هم سریع بود.", who:"امیر ک. — اصفهان"},
-  {stars:4, txt:"زرد لیمویی بدون شکه بهترین نوشیدنی انرژی‌زای رژیمییه که خوردم.", who:"نگار ت. — شیراز"},
+  {stars:4, txt:"زرد لیمویی بدون شکر بهترین نوشیدنی انرژی‌زای رژیمیه که خوردم.", who:"نگار ت. — شیراز"},
   {stars:5, txt:"طراحی قوطی‌ها انقدر قشنگه که نمی‌خوام دورشون بندازم!", who:"محمد ر. — مشهد"},
 ];
 
@@ -75,18 +75,41 @@ function physicsLoop(now){
 }
 requestAnimationFrame(physicsLoop);
 
-/* ---------- انتخاب قوطی: تم + اسپلش ---------- */
+/* ---------- انتخاب قوطی: کل صفحه هم‌رنگ قوطی می‌شه ---------- */
 let activeCan = 1;
+
+/* تشخیص روشن یا تیره بودن رنگ قوطی (برای متنِ خوانا) */
+function isLight(hex){
+  const r = parseInt(hex.slice(1,3),16),
+        g = parseInt(hex.slice(3,5),16),
+        b = parseInt(hex.slice(5,7),16);
+  return (0.299*r + 0.587*g + 0.114*b) > 150;
+}
+
 function selectCan(i){
   activeCan = i;
   const c = CANS[i];
-  document.documentElement.style.setProperty("--accent", c.theme);
-  document.documentElement.style.setProperty("--accent2", c.color);
-  document.body.classList.toggle("light", !c.dark);
+  const light = isLight(c.color);
+  const st = document.body.style;
+
+  // کل صفحه هم‌رنگ خود قوطی
+  st.setProperty("--bg",  c.color);
+  st.setProperty("--bg2", `color-mix(in srgb, ${c.color} ${light?"55":"70"}%, ${light?"#fff":"#000"})`);
+  st.setProperty("--card", `color-mix(in srgb, ${c.color} ${light?"30":"55"}%, ${light?"#fff":"#000"})`);
+
+  // رنگ تأکیدی یک پله متفاوت تا روی پس‌زمینه دیده بشه
+  st.setProperty("--accent",  `color-mix(in srgb, ${c.color} ${light?"70":"60"}%, ${light?"#000":"#fff"})`);
+  st.setProperty("--accent2", c.color);
+
+  // روی رنگ‌های روشن متن تیره، روی رنگ‌های تیره متن سفید
+  document.body.classList.toggle("light", light);
+
+  pendulums.forEach((p,k)=>p.el.classList.toggle("active", k===i));
   popSound();
   splash(i);
-  toast(`حالت «${c.name}» فعال شد ✨`);
+  toast(`کل صفحه هم‌رنگ «${c.name}» شد ✨`);
 }
+
 function splash(i){
   const layer = document.getElementById("splashLayer");
   const p = pendulums[i], r = p.el.getBoundingClientRect(), lr = layer.getBoundingClientRect();
@@ -106,12 +129,6 @@ function splash(i){
   }
 }
 
-/* ---------- کیبورد ۱ تا ۶ ---------- */
-document.addEventListener("keydown", e=>{
-  const n = parseInt(e.key);
-  if(n>=1 && n<=6) selectCan(n-1);
-});
-
 /* ---------- حباب‌ها ---------- */
 const bubblesEl = document.getElementById("bubbles");
 for(let i=0;i<14;i++){
@@ -130,7 +147,7 @@ const barWrapper = document.getElementById("barWrapper");
 window.addEventListener("scroll", ()=>{
   const y = window.scrollY;
   barWrapper.style.transform = `translateY(${y*0.25}px)`;
-  pendulums.forEach((p,i)=>{ p.vel += Math.sin(y/300 + i)*0.0008; }); // تاب خوردن با اسکرول
+  pendulums.forEach((p,i)=>{ p.vel += Math.sin(y/300 + i)*0.0008; });
   const h = document.documentElement;
   document.getElementById("progressBar").style.width = (y/(h.scrollHeight-h.clientHeight)*100)+"%";
 });
@@ -140,7 +157,7 @@ const grid = document.getElementById("productsGrid");
 CANS.forEach(c=>{
   const card = document.createElement("div");
   card.className="product-card";
-  card.style.setProperty("--pc", c.theme);
+  card.style.setProperty("--pc", c.color);
   card.innerHTML = `
     <div class="mini-can" style="background:linear-gradient(180deg,${c.color},${c.color}cc)"></div>
     <h3>${c.name}</h3>
@@ -159,8 +176,8 @@ CANS.forEach(c=>{
 const tbody = document.querySelector("#compareTable tbody");
 CANS.forEach(c=>{
   tbody.insertAdjacentHTML("beforeend",
-    `<tr><td><b style="color:${c.theme}">${c.name}</b><br><small>${c.taste}</small></td>
-     <td>${fa(c.caf)}</td><td>${c.sugar===0?"صفر":fa(c.sugar)}</td><td>${fa(c.cal)}</td><td>${fa("۳۳۰")} ml</td></tr>`);
+    `<tr><td><b>${c.name}</b><br><small>${c.taste}</small></td>
+     <td>${fa(c.caf)}</td><td>${c.sugar===0?"صفر":fa(c.sugar)}</td><td>${fa(c.cal)}</td><td>۳۳۰ ml</td></tr>`);
 });
 
 /* ---------- باکس ترکیبی ---------- */
@@ -168,7 +185,7 @@ const mixCansEl = document.getElementById("mixCans");
 let mixSel = [];
 CANS.forEach((c,i)=>{
   const chip = document.createElement("button");
-  chip.className="mix-chip"; chip.style.setProperty("--mc", c.theme);
+  chip.className="mix-chip"; chip.style.setProperty("--mc", c.color);
   chip.textContent = `${c.name} — ${fa(c.price.toLocaleString("en"))} تومان`;
   chip.addEventListener("click", ()=>{
     const idx = mixSel.indexOf(c.id);
@@ -217,7 +234,7 @@ setInterval(()=>goSlide((slideIdx+1)%REVIEWS.length), 4000);
 const gGrid = document.getElementById("galleryGrid");
 CANS.forEach(c=>{
   const t = document.createElement("div");
-  t.className="g-tile"; t.style.setProperty("--gc", c.theme);
+  t.className="g-tile"; t.style.setProperty("--gc", c.color);
   t.innerHTML=`<span dir="ltr">Life</span>`;
   gGrid.appendChild(t);
 });
@@ -238,9 +255,9 @@ const io = new IntersectionObserver(entries=>{
     const t0 = performance.now();
     (function tick(now){
       const p = Math.min((now-t0)/1500, 1);
-      el.textContent = fa(Math.round(target*(1-Math.pow(1-p,3)).toLocaleString?"":target*(1-Math.pow(1-p,3)))) + suf;
+      const val = Math.round(target*(1-Math.pow(1-p,3)));
+      el.textContent = fa(val.toLocaleString("en")) + suf;
       if(p<1) requestAnimationFrame(tick);
-      else el.textContent = fa(target.toLocaleString("en"))+suf;
     })(t0);
   });
 },{threshold:.5});
@@ -272,7 +289,7 @@ function renderCart(){
       <div class="qty-btns">
         <button onclick="chQty(${i},1)">+</button><button onclick="chQty(${i},-1)">−</button>
       </div>
-    </div>`).join("") || `<p style="color:var(--muted);text-align:center;padding:30px 0">سبد خالیه!</p>`;
+    </div>`).join("") || `<p style="opacity:.7;text-align:center;padding:30px 0">سبد خالیه!</p>`;
   const total = cart.reduce((a,i)=>a+i.price*i.qty,0);
   document.getElementById("cartTotal").textContent = fa(total.toLocaleString("en"))+" تومان";
 }
