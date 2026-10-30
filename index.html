@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>هپی لایف | نوشیدنی انرژی‌زا</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="progressBar"></div>
+
+<header id="header">
+  <div class="logo">⚡ <span>هپی‌لایف</span></div>
+  <nav>
+    <a href="#hero">خانه</a>
+    <a href="#products">محصولات</a>
+    <a href="#compare">مقایسه</a>
+    <a href="#mixbox">باکس ترکیبی</a>
+    <a href="#stores">فروشگاه‌ها</a>
+  </nav>
+  <div class="header-actions">
+    <button id="soundBtn" class="icon-btn" title="صدا">🔊</button>
+    <button id="cartBtn" class="icon-btn" title="سبد خرید">🛒<span id="cartCount">۰</span></button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="bubbles" id="bubbles"></div>
+  <div class="hero-content">
+    <h1>انرژی در حرکت</h1>
+    <p dir="ltr">ENERGY IN MOTION — THE HAPPY LIFE COLLECTION</p>
+    <div class="hero-hint">🔍 ماوس رو روی قوطی‌ها بچرخون • با کلیک، حال‌وهوای سایت عوض می‌شه • کلیدهای ۱ تا ۶</div>
+  </div>
+  <div class="bar-wrapper" id="barWrapper">
+    <div class="bar"></div>
+    <div class="cans" id="cans"></div>
+  </div>
+  <div class="splash-layer" id="splashLayer"></div>
+  <div class="floor"></div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section id="stats" class="section">
+  <div class="section-title">هپی‌لایف در یک نگاه</div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" data-target="6">۰</div><div class="stat-label">طعم منحصربه‌فرد</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="1200" data-suffix="+">۰</div><div class="stat-label">فروشگاه همکار</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="98" data-suffix="٪">۰</div><div class="stat-label">رضایت مشتریان</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="24" data-suffix=" ساعت">۰</div><div class="stat-label">ارسال سریع</div></div>
+  </div>
+</section>
+
+<!-- ============ PRODUCTS ============ -->
+<section id="products" class="section">
+  <div class="section-title">کالکشن انرژی</div>
+  <div class="products-grid" id="productsGrid"></div>
+</section>
+
+<!-- ============ COMPARE ============ -->
+<section id="compare" class="section">
+  <div class="section-title">مقایسه‌ی طعم‌ها</div>
+  <div class="table-wrap">
+    <table id="compareTable">
+      <thead><tr><th>طعم</th><th>کافئین (mg)</th><th>قند (g)</th><th>کالری</th><th>حجم</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="compare-note">* مقادیر به‌ازای هر قوطی ۳۳۰ میلی‌لیتری — بدون شکر یعنی قند صفر</div>
+</section>
+
+<!-- ============ MIX BOX ============ -->
+<section id="mixbox" class="section">
+  <div class="section-title">باکس ترکیبی بساز 🎁</div>
+  <p class="mix-sub">۶ قوطی انتخاب کن — باکس ترکیبی ۱۵٪ تخفیف داره!</p>
+  <div class="mix-cans" id="mixCans"></div>
+  <div class="mix-summary">
+    <div>انتخاب‌شده: <b id="mixCount">۰</b> از ۶</div>
+    <div>جمع: <b id="mixTotal">۰</b> تومان <span id="mixDiscount"></span></div>
+    <button id="mixAdd" class="cta-btn" disabled>افزودن باکس به سبد</button>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section id="reviews" class="section">
+  <div class="section-title">حرف مشتری‌ها</div>
+  <div class="slider">
+    <div class="slides" id="slides"></div>
+    <div class="slider-nav" id="sliderNav"></div>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery" class="section">
+  <div class="section-title">هپی‌لایف در اینستاگرام</div>
+  <div class="gallery-grid" id="galleryGrid"></div>
+</section>
+
+<!-- ============ STORES ============ -->
+<section id="stores" class="section">
+  <div class="section-title">فروشگاه‌های حضوری</div>
+  <div class="stores-wrap">
+    <div class="store-list" id="storeList"></div>
+    <div class="store-map" id="storeMap">
+      <div class="map-pin" style="top:25%;right:30%">📍</div>
+      <div class="map-pin" style="top:55%;right:55%">📍</div>
+      <div class="map-pin" style="top:70%;right:25%">📍</div>
+      <div class="map-label">تهران</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">⚡ هپی‌لایف</div>
+  <div class="footer-links">
+    <a href="#hero">خانه</a><a href="#products">محصولات</a><a href="#stores">فروشگاه‌ها</a>
+  </div>
+  <div class="footer-enamad">
+    <!-- کد نماد اعتماد الکترونیکی (اینماد) را اینجا قرار دهید -->
+    <div class="enamad-placeholder">🛡️ نماد اعتماد الکترونیکی</div>
+  </div>
+  <div class="footer-copy">© ۱۴۰۵ هپی‌لایف — انرژی در حرکت</div>
+</footer>
+
+<!-- ============ CART DRAWER ============ -->
+<div class="overlay" id="cartOverlay"></div>
+<aside class="drawer" id="cartDrawer">
+  <div class="drawer-head"><h3>🛒 سبد خرید</h3><button class="close-btn" id="cartClose">✕</button></div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div>جمع کل: <b id="cartTotal">۰ تومان</b></div>
+    <button class="cta-btn" id="checkoutBtn">تسویه حساب</button>
+  </div>
+</aside>
+
+<!-- ============ PRODUCT MODAL ============ -->
+<div class="modal" id="productModal">
+  <div class="modal-box" id="productModalBox">
+    <button class="close-btn" id="productClose">✕</button>
+    <div class="modal-can" id="modalCan"></div>
+    <div class="modal-info">
+      <h3 id="modalName"></h3>
+      <p id="modalDesc"></p>
+      <ul id="modalSpecs"></ul>
+      <div class="modal-price" id="modalPrice"></div>
+      <button class="cta-btn" id="modalAdd">افزودن به سبد</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CHECKOUT MODAL ============ -->
+<div class="modal" id="checkoutModal">
+  <div class="modal-box checkout-box">
+    <button class="close-btn" id="checkoutClose">✕</button>
+    <div class="steps">
+      <div class="step active" data-step="1">۱. اطلاعات</div>
+      <div class="step" data-step="2">۲. ارسال</div>
+      <div class="step" data-step="3">۳. تأیید</div>
+    </div>
+    <div class="step-pane" id="pane1">
+      <label>نام و نام خانوادگی<input type="text" id="ckName" placeholder="نام شما"></label>
+      <label>شماره موبایل<input type="tel" id="ckPhone" placeholder="۰۹۱۲۳۴۵۶۷۸۹" dir="ltr"></label>
+      <button class="cta-btn" id="ckNext1">مرحله بعد</button>
+    </div>
+    <div class="step-pane" id="pane2" hidden>
+      <label>آدرس<textarea id="ckAddress" placeholder="آدرس کامل"></textarea></label>
+      <div class="ship-opts">
+        <label class="radio"><input type="radio" name="ship" value="۲۵۰۰۰" checked> پست پیشتاز (۲۵٬۰۰۰ تومان)</label>
+        <label class="radio"><input type="radio" name="ship" value="۶۰۰۰۰"> پیک فوری (۶۰٬۰۰۰ تومان)</label>
+      </div>
+      <button class="cta-btn" id="ckNext2">مرحله بعد</button>
+    </div>
+    <div class="step-pane" id="pane3" hidden>
+      <div class="summary" id="ckSummary"></div>
+      <div class="pay-note">⚠️ این یک شبیه‌ساز پرداخت است — اتصال به درگاه واقعی نیاز به کد سمت سرور دارد.</div>
+      <button class="cta-btn" id="ckPay">پرداخت (شبیه‌سازی)</button>
+      <div class="pay-success" id="ckSuccess" hidden>✅ سفارش شما ثبت شد! (شبیه‌سازی)</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
