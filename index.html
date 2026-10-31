@@ -2,284 +2,320 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>هپی‌لایف | نوشیدنی انرژی‌زای طبیعی</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>هپی‌لایف | نوشیدنی انرژی‌زای رسمی</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+<canvas id="confettiCv"></canvas>
 
-<button id="motionBtn" class="motion-btn" title="حالت کم‌حرکت">🐢 حرکت کم</button>
-
-<header class="topbar">
-  <div class="logo">⚡ هپی‌لایف</div>
+<!-- هدر -->
+<header id="topbar">
+  <div class="logo">⚡ <b>هپی‌لایف</b></div>
   <nav>
-    <a href="#home">خانه</a><a href="#about">درباره ما</a><a href="#products">محصولات</a>
-    <a href="#flavors">طعم‌سنج</a><a href="#game">بازی</a><a href="#blog">وبلاگ</a><a href="#contact">تماس</a>
+    <a href="#cans">قوطی‌ها</a>
+    <a href="#about">درباره ما</a>
+    <a href="#blog">وبلاگ</a>
+    <a href="#agency">نمایندگی</a>
+    <a href="#contact">تماس</a>
   </nav>
-  <button class="theme-toggle" id="themeBtn" title="حالت روشن/تاریک">🌓</button>
-  <button class="cart-btn" id="cartBtn" onclick="toggleCart()">🛒 <span id="cartCount">۰</span></button>
+  <div class="hbtns">
+    <input id="siteSearch" placeholder="🔍 جستجو در سایت…">
+    <button id="themeBtn" class="hbtn" title="تم روشن/تیره">🌓</button>
+    <button id="motionBtn" class="hbtn" title="کاهش حرکت">🐢</button>
+    <button id="musicBtn" class="hbtn" title="موزیک">🎵</button>
+    <button id="cartBtn" class="hbtn">🛒 <span id="cartBadge">۰</span></button>
+    <span class="hbtn" id="coinChip">🪙 <span id="coinVal">۰</span></span>
+  </div>
 </header>
 
-<div class="suggestion-bar" id="sugBar">💡 پیشنهاد ویژه: با کد <b>HAPPY20</b> تخفیف بگیر! تا پایان امروز <span id="sugTimer"></span></div>
-
-<section class="hero" id="home">
-  <div class="hero-text reveal">
-    <h1>انرژیِ <span id="brandWord">خالص</span>، بدون افیونِ بی‌کیفیت</h1>
-    <p>قوطی هپی‌لایف رو بردار و روزت رو روشن کن. طعم‌های خفن، انرژی واقعی.</p>
-    <button class="btn main" onclick="location.hash='products'">🚀 بزن بریم خرید</button>
-    <button class="btn ghost" onclick="location.hash='flavors'">طعم مورد علاقه‌ام رو چطوری پیدا کنم؟</button>
+<!-- هیرو: میله و قوطی‌های آویزون -->
+<section class="hero">
+  <div class="pole"></div>
+  <div id="canRow"></div>
+  <div class="heroTxt">
+    <h1>انرژی <span id="brandWord">واقعی</span>، بدون شکر اضافه!</h1>
+    <p>روی هر قوطی بزن تا رنگ کل سایت مثل همون طعم بشه 💜 دوبار بزن تا شوک انرژی بگیری! ⚡</p>
+    <button class="cta" id="heroBuy">🛒 سفارش آنلاین</button>
+    <button class="cta ghost" id="flavorQuizBtn">🍹 طعم‌سنج هپی‌لایف</button>
   </div>
-  <div class="hero-can reveal" id="heroCan">
-    <div class="can" id="can" tabindex="0">
-      <div class="can-shine"></div>
-      <div class="can-label" id="canLabel">بنفش برقی</div>
+</section>
+
+<!-- کمپین + جشن تولد -->
+<section class="wrap camp">
+  <div class="card campBox">
+    <h2>🔥 کمپین پاییزه FALL25</h2>
+    <p>تا پایان کمپین: <b id="fallTimer">--</b></p>
+    <button class="cta" onclick="applyCode('FALL25')">دریافت ٪۲۵ تخفیف</button>
+    <button class="cta ghost" id="bdayBtn">🎂 جشن تولد هپی‌لایف (BDAY30)</button>
+  </div>
+</section>
+
+<!-- قوطی امروز -->
+<section class="wrap">
+  <div class="card center">
+    <h2>🏆 قوطی امروز</h2>
+    <p id="dayCanTxt"></p>
+    <button class="cta" onclick="applyCode('DAY10')">کد DAY10 — ٪۱۰ تخفیف قوطی امروز</button>
+  </div>
+</section>
+
+<!-- کارت قوطی‌ها -->
+<section id="cans" class="wrap">
+  <h2 class="secT">🍹 طعم‌ها</h2>
+  <div id="canCards"></div>
+  <div class="card">
+    <h3>⭐ امتیاز بده!</h3>
+    <div id="rateRow"></div>
+    <p id="rateInfo"></p>
+  </div>
+  <div class="card">
+    <h3>⚔️ مقایسه‌گر طعم‌ها</h3>
+    <select id="vsA"></select> <b>در برابر</b> <select id="vsB"></select>
+    <div id="vsOut"></div>
+  </div>
+</section>
+
+<!-- طعم‌سنج -->
+<section class="wrap">
+  <div class="card" id="quizBox">
+    <h2>🍹 طعم‌سنج هپی‌لایف</h2>
+    <div id="quizQ"></div>
+  </div>
+</section>
+
+<!-- کافئین‌سنج -->
+<section class="wrap">
+  <div class="card">
+    <h2>⚡ کافئین‌سنج</h2>
+    <label>وزن: <b id="wVal">۷۰</b> کیلوگرم</label>
+    <input type="range" id="wRange" min="40" max="120" value="70">
+    <p id="cafOut"></p>
+  </div>
+</section>
+
+<!-- باکس ترکیبی -->
+<section class="wrap">
+  <div class="card">
+    <h2>🎁 باکس ترکیبی (٪۱۵ تخفیف — ۶ قوطی)</h2>
+    <div id="mixRow"></div>
+    <p id="mixOut"></p>
+    <button class="cta" id="mixAdd">افزودن باکس به سبد</button>
+  </div>
+</section>
+
+<!-- چرخ شانس -->
+<section class="wrap">
+  <div class="card center">
+    <h2>🎡 چرخ شانس</h2>
+    <div id="wheelWrap"><div id="wheel"></div><div id="wheelPin">▼</div></div>
+    <p id="wheelOut"></p>
+    <button class="cta" id="spinBtn">بچرخون! (۱۵ هپی‌کوین)</button>
+  </div>
+</section>
+
+<!-- ماموریت‌های روزانه -->
+<section class="wrap">
+  <div class="card">
+    <h2>📋 ماموریت‌های روزانه</h2>
+    <ul id="missionList"></ul>
+  </div>
+</section>
+
+<!-- جعبه هدیه -->
+<section class="wrap">
+  <div class="card center">
+    <h2>🎁 جعبه هدیه هپی‌لایف</h2>
+    <div id="giftBox">🎁</div>
+    <p id="giftOut"></p>
+  </div>
+</section>
+
+<!-- نمودار فروش -->
+<section class="wrap">
+  <div class="card">
+    <h2>📊 فروش ۶ ماه اخیر (هزار قوطی)</h2>
+    <div id="chart"></div>
+  </div>
+</section>
+
+<!-- تایم‌لاین درباره ما -->
+<section id="about" class="wrap">
+  <h2 class="secT">📖 درباره ما</h2>
+  <div class="card">
+    <div class="tl">
+      <div class="tlItem"><b>۱۳۹۸</b><span>شروع در یه گاراژ کوچیک با یه دستور پنهون 😅</span></div>
+      <div class="tlItem"><b>۱۴۰۰</b><span>اولین قوطی «کولا نایت» به بازار اومد</span></div>
+      <div class="tlItem"><b>۱۴۰۲</b><span>میلیون‌مین قوطی فروخته شد! 🎉</span></div>
+      <div class="tlItem"><b>۱۴۰۴</b><span>۶ طعم، هزاران هپی‌لایفر در سراسر ایران</span></div>
     </div>
-    <div class="hint">دو بار کلیک/لمس کن = شوک انرژی + فس‌فسک ⚡</div>
   </div>
 </section>
 
-<section id="about" class="section">
-  <h2>درباره هپی‌لایف</h2>
-  <div class="timeline reveal">
-    <div class="tl-item"><b>۱۳۹۸</b><p>شروع در یک گاراژ با یک دستور پنهان ✋</p></div>
-    <div class="tl-item"><b>۱۴۰۰</b><p>اولین خط تولید — هزار قوطی در روز 🏭</p></div>
-    <div class="tl-item"><b>۱۴۰۲</b><p>نمایندگی در ۱۵ استان ایران 🗺️</p></div>
-    <div class="tl-item"><b>۱۴۰۴</b><p>طعم ۷ و کمپین‌های بین‌المللی 🌍</p></div>
+<!-- گالری -->
+<section class="wrap">
+  <div class="card">
+    <h2>🖼️ گالری</h2>
+    <div id="gallery"></div>
   </div>
 </section>
 
-<section id="products" class="section">
-  <h2>قوطی‌های ما <small style="font-size:.8rem;color:var(--muted)">(روی هر قوطی بزن تا رنگ سایت عوض شه و فس‌فسکشو بشنوی 🥫)</small></h2>
-  <div class="cans-grid" id="cansGrid"></div>
-</section>
-
-<section id="daily" class="section alt">
-  <h2>🥫 قوطی امروز</h2>
-  <div class="card center reveal">
-    <p>هر روز یک طعم با <b>۱۰٪ تخفیف</b>! امروز:</p>
-    <h3 id="dailyName">—</h3>
-    <p>کد تخفیف: <span class="code" id="dailyCode">DAY10</span> <button class="btn tiny" onclick="copyCode()">📋 کپی</button></p>
+<!-- لیدربورد -->
+<section class="wrap">
+  <div class="card">
+    <h2>🏅 لیدربورد هپی‌لایفرها</h2>
+    <ol id="lbList"></ol>
   </div>
 </section>
 
-<section id="compare" class="section">
-  <h2>⚔️ مقایسه‌گر دو طعم</h2>
-  <div class="card reveal compare-box">
-    <select id="vsA"></select> <span>در برابر</span> <select id="vsB"></select>
-    <div id="vsResult" class="vs-result"></div>
+<!-- هپی‌لایفرها -->
+<section class="wrap">
+  <div class="card">
+    <h2>💬 هپی‌لایفرها چی میگن؟</h2>
+    <div id="fans"></div>
   </div>
 </section>
 
-<section id="intensity" class="section alt">
-  <h2>🔥 شدت انرژی دلخواهت چقدره؟</h2>
-  <div class="card reveal">
-    <input type="range" id="intRange" min="60" max="200" value="200" step="10" oninput="filterByIntensity(this.value)">
-    <p>حداکثر کافئین: <b id="intVal">۲۰۰</b> میلی‌گرم</p>
-    <div id="intList" class="mini-list"></div>
+<!-- وبلاگ -->
+<section id="blog" class="wrap">
+  <h2 class="secT">📰 وبلاگ</h2>
+  <div id="blogAcc"></div>
+</section>
+
+<!-- نقشه -->
+<section class="wrap">
+  <div class="card">
+    <h2>📍 دفتر مرکزی</h2>
+    <iframe id="osmMap" width="100%" height="260" style="border:0;border-radius:12px" loading="lazy"></iframe>
+    <button class="cta ghost" id="radarBtn">📡 رادار نزدیک‌ترین فروشگاه</button>
+    <p id="radarOut"></p>
   </div>
 </section>
 
-<section id="caffeine" class="section">
-  <h2>☕ کافئین‌سنج شخصی</h2>
-  <div class="card reveal">
-    <label>وزنت چنده؟ (کیلوگرم) <input type="number" id="weight" min="30" max="150" value="70"></label>
-    <p id="caffeineResult"></p>
+<!-- فرم نمایندگی -->
+<section id="agency" class="wrap">
+  <div class="card">
+    <h2>🤝 درخواست نمایندگی</h2>
+    <input id="agName" placeholder="نام کسب‌وکار">
+    <input id="agCity" placeholder="شهر">
+    <input id="agPhone" placeholder="تلفن">
+    <button class="cta" id="agBtn">ارسال درخواست</button>
   </div>
 </section>
 
-<section id="flavors" class="section alt">
-  <h2>🎯 طعم‌سنج هپی‌لایف</h2>
-  <div class="card reveal quiz" id="quiz"></div>
-</section>
-
-<section id="mixbox" class="section">
-  <h2>🎁 باکس ترکیبی (۱۵٪ تخفیف)</h2>
-  <div class="card reveal">
-    <div id="mixPick" class="mini-list"></div>
-    <button class="btn main" onclick="addMix()">به سبد اضافه کن</button>
-    <p id="mixInfo"></p>
+<!-- فرم تماس -->
+<section id="contact" class="wrap">
+  <div class="card">
+    <h2>✉️ تماس با ما</h2>
+    <input id="ctName" placeholder="نام">
+    <input id="ctMail" placeholder="ایمیل">
+    <textarea id="ctMsg" placeholder="پیام شما"></textarea>
+    <button class="cta" id="ctBtn">ارسال</button>
   </div>
 </section>
 
-<section id="game" class="section alt">
-  <h2>🕹️ بازی «قوطی بگیر»</h2>
-  <div class="card reveal">
-    <p>قوطی‌ها رو بگیر، از بمب‌های 💡 فرار کن! هر ۵ امتیاز = ۱ هپی‌کوین 🪙</p>
-    <div id="gameArea"></div>
-    <p>امتیاز: <b id="gameScore">۰</b></p>
-    <button class="btn main" onclick="startGame()">شروع بازی</button>
+<!-- خبرنامه -->
+<section class="wrap">
+  <div class="card center">
+    <h2>📮 خبرنامه</h2>
+    <p>عضو شو و ۱۰ هپی‌کوین هدیه بگیر!</p>
+    <input id="nlMail" placeholder="ایمیل شما" style="max-width:320px">
+    <button class="cta" id="nlBtn">عضویت</button>
   </div>
 </section>
 
-<section id="wheel" class="section">
-  <h2>🎡 چرخ شانس</h2>
-  <div class="card center reveal">
-    <div class="wheel" id="wheelEl"></div>
-    <button class="btn main" onclick="spinWheel()">بچرخون!</button>
-    <p id="wheelMsg"></p>
+<!-- بازی قوطی‌گیر -->
+<section class="wrap">
+  <div class="card center">
+    <h2>🎮 بازی قوطی‌گیر</h2>
+    <canvas id="catchCv" width="340" height="220"></canvas>
+    <p>امتیاز: <b id="catchScore">۰</b> — روی قوطی‌های در حال سقوط کلیک کن!</p>
   </div>
 </section>
 
-<section id="missions" class="section alt">
-  <h2>📌 ماموریت‌های روزانه</h2>
-  <div class="card reveal" id="missionsBox"></div>
-</section>
+<!-- چت‌بات -->
+<div id="botBox">
+  <div id="botHead">🤖 دستیار هپی‌لایف <span id="botClose">✕</span></div>
+  <div id="botLog"></div>
+  <div id="botBar"><input id="botIn" placeholder="سوالت رو بپرس…"><button id="botSend">➤</button></div>
+</div>
+<button id="botFab">🤖</button>
 
-<section id="leaderboard" class="section">
-  <h2>🏆 لیدربورد هپی‌کوین</h2>
-  <div class="card reveal" id="boardBox"></div>
-</section>
+<!-- دکمه واتساپ شناور -->
+<a id="waBtn" href="https://wa.me/989120000000" target="_blank" rel="noopener">💬 واتساپ</a>
 
-<section id="ratings" class="section alt">
-  <h2>⭐ به طعم‌ها امتیاز بده</h2>
-  <div class="card reveal" id="ratingBox"></div>
-</section>
-
-<section id="orders" class="section">
-  <h2>📦 سفارش‌های من</h2>
-  <div class="card reveal" id="ordersBox"></div>
-</section>
-
-<section id="gift" class="section alt">
-  <h2>🎁 جعبه هدیه هپی‌لایف</h2>
-  <div class="card reveal">
-    <p>یک جعبه ۶ قوطی + کارت تبریک با پیام خودت! فقط +۲۰٬۰۰۰ تومان</p>
-    <input type="text" id="giftMsg" maxlength="80" placeholder="متن کارت هدیه...">
-    <button class="btn main" onclick="addGift()">جعبه هدیه رو سبد کن</button>
-  </div>
-</section>
-
-<section id="campaign" class="section">
-  <h2>🔥 کمپین فروش هفتگی — ۲۵٪ تخفیف با FALL25</h2>
-  <div class="card center reveal">
-    <p>تا پایان کمپین: <b id="campTimer"></b></p>
-    <button class="btn main" onclick="copyCodeF('FALL25')">📋 کپی کد FALL25</button>
-  </div>
-</section>
-
-<section id="lifers" class="section alt">
-  <h2>💬 هپی‌لایفرها چی میگن؟</h2>
-  <div class="grid2 reveal">
-    <div class="card"><p>«صبح‌ها بدون کولا نایت من نمیتونم فکر کنم!»</p><b>سارا — طراح گرافیک</b></div>
-    <div class="card"><p>«آبی یخی بهترین همراه جلسات کدنویسی شبانه‌ست.»</p><b>امیر — برنامه‌نویس</b></div>
-    <div class="card"><p>«بدون شکرباش برای بابام خریدم، عاشقش شد.»</p><b>نگار — پرستار</b></div>
-    <div class="card"><p>«کمپین‌های هپی‌لایف واقعا هیجان‌انگیزه!»</p><b>رضا — دانشجو</b></div>
-  </div>
-</section>
-
-<section id="store" class="section">
-  <h2>📍 رادار فروشگاه نزدیک</h2>
-  <div class="card reveal">
-    <button class="btn main" onclick="findStore()">نزدیک‌ترین فروشگاه رو پیدا کن</button>
-    <p id="storeResult"></p>
-    <iframe id="map" title="نقشه" style="border:0;border-radius:12px;width:100%;height:260px;display:none"
-      loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=51.30%2C35.65%2C51.48%2C35.78&layer=mapnik"></iframe>
-  </div>
-</section>
-
-<section id="blog" class="section alt">
-  <h2>📰 وبلاگ هپی‌لایف</h2>
-  <div class="accordion reveal" id="blogBox"></div>
-</section>
-
-<section id="gallery" class="section">
-  <h2>🖼️ گالری</h2>
-  <div class="gallery reveal" id="galleryBox"></div>
-</section>
-
-<section id="chart" class="section alt">
-  <h2>📊 فروش هفته اخیر</h2>
-  <div class="bars reveal" id="salesBars"></div>
-</section>
-
-<section id="bday" class="section">
-  <h2>🎂 جشن تولد برند</h2>
-  <div class="card center reveal">
-    <p>تولد هپی‌لایف مبارک! ۳۰٪ تخفیف با کد <b>BDAY30</b></p>
-    <button class="btn main" onclick="simBday()">🎉 جشن رو ببین</button>
-  </div>
-</section>
-
-<section id="reseller" class="section alt">
-  <h2>🤝 نمایندگی هپی‌لایف</h2>
-  <div class="card reveal">
-    <input type="text" id="resName" placeholder="نام شما">
-    <input type="tel" id="resPhone" placeholder="شماره تماس">
-    <input type="text" id="resCity" placeholder="شهر">
-    <button class="btn main" onclick="submitReseller()">درخواست نمایندگی</button>
-    <p id="resMsg" class="ok-msg"></p>
-  </div>
-</section>
-
-<section id="contact" class="section">
-  <h2>✉️ تماس با ما</h2>
-  <div class="card reveal">
-    <input type="text" id="cName" placeholder="نام">
-    <input type="email" id="cEmail" placeholder="ایمیل">
-    <textarea id="cMsg" placeholder="پیام شما"></textarea>
-    <button class="btn main" onclick="submitContact()">ارسال</button>
-    <p id="cMsgOut" class="ok-msg"></p>
-  </div>
-</section>
-
-<section id="news" class="section alt">
-  <h2>📬 خبرنامه (+۱۰ هپی‌کوین)</h2>
-  <div class="card reveal">
-    <input type="email" id="newsEmail" placeholder="ایمیلت رو بذار">
-    <button class="btn main" onclick="joinNews()">عضویت</button>
-    <p id="newsOut" class="ok-msg"></p>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="footer-cols">
-    <div><b>⚡ هپی‌لایف</b><p>انرژی طبیعی، طعم بی‌نظیر.</p></div>
+<!-- فوتر -->
+<footer>
+  <div class="fcols">
     <div>
-      <b>ما رو دنبال کن</b>
+      <b>⚡ هپی‌لایف</b>
+      <p>انرژی واقعی، بدون شکر اضافه. ساخته‌شده با ❤️ در ایران.</p>
+    </div>
+    <div>
+      <b>ما را دنبال کنید</b>
       <div class="socials">
-        <a href="https://instagram.com/happylife" target="_blank">📷 اینستاگرام</a>
-        <a href="https://t.me/happylife" target="_blank">✈️ تلگرام</a>
-        <a href="https://aparat.com/happylife" target="_blank">📺 آپارات</a>
+        <a href="https://instagram.com/happylife" target="_blank" rel="noopener">📷 اینستاگرام</a>
+        <a href="https://t.me/happylife" target="_blank" rel="noopener">✈️ تلگرام</a>
+        <a href="https://aparat.com/happylife" target="_blank" rel="noopener">🎬 آپارات</a>
       </div>
     </div>
-    <div><b>اینماد</b><div class="enamad-placeholder">نشان اینماد (جایگاه)</div></div>
+    <div>
+      <b>نماد اعتماد</b>
+      <div class="enamad">اینماد (placeholder)</div>
+    </div>
   </div>
-  <p class="copy">© ۱۴۰۴ هپی‌لایف — همه حقوق محفوظ است.</p>
+  <p class="copy">© ۱۴۰۴ هپی‌لایف — تمام حقوق محفوظ است.</p>
 </footer>
 
-<a class="float-btn" id="floatBtn" href="https://wa.me/989120000000" target="_blank" title="واتساپ">💬</a>
-
-<div class="chatbot" id="chatbot">
-  <div class="chat-head">🤖 پشتیبان هپی‌لایف <button onclick="toggleChat()">✕</button></div>
-  <div class="chat-body" id="chatBody"></div>
-  <div class="chat-input"><input id="chatIn" placeholder="سوالی داری؟"><button onclick="sendChat()">➤</button></div>
-</div>
-<button class="chat-toggle" onclick="toggleChat()">🤖</button>
-
-<div class="drawer" id="cartDrawer">
-  <div class="drawer-head"><b>🛒 سبد خرید</b><button onclick="toggleCart()">✕</button></div>
-  <div id="cartItems"></div>
-  <div id="cartFoot">
-    <input type="text" id="discIn" placeholder="کد تخفیف">
-    <button class="btn tiny" onclick="applyDisc()">اعمال</button>
-    <p id="discMsg"></p>
-    <p>مجموع: <b id="cartTotal"></b></p>
-    <button class="btn main" onclick="startCheckout()">ثبت سفارش</button>
+<!-- سبد خرید / چک‌اوت -->
+<div class="modal" id="cartModal">
+  <div class="mbox">
+    <button class="mclose" id="cartClose">✕</button>
+    <div id="coStep1">
+      <h3>🛒 سبد خرید</h3>
+      <div id="cartList"></div>
+      <input id="codeIn" placeholder="کد تخفیف (مثلاً HAPPY20)">
+      <button class="cta" id="codeBtn">اعمال کد</button>
+      <p id="codeOut"></p>
+      <h4>🚚 آدرس</h4>
+      <input id="coName" placeholder="نام و نام خانوادگی">
+      <input id="coAddr" placeholder="آدرس کامل">
+      <input id="coTel" placeholder="تلفن">
+      <button class="cta" id="toStep2">ادامه ←</button>
+    </div>
+    <div id="coStep2" style="display:none">
+      <h3>🚚 روش ارسال</h3>
+      <label><input type="radio" name="ship" value="post" checked> پست پیشتاز — ۲۵٬۰۰۰ تومان</label>
+      <label><input type="radio" name="ship" value="pick"> تحویل حضوری — ۶۰٬۰۰۰ تومان (پیک اختصاصی)</label>
+      <p id="shipOut"></p>
+      <button class="cta" id="toStep3">ادامه به پرداخت ←</button>
+    </div>
+    <div id="coStep3" style="display:none">
+      <h3>💳 پرداخت (شبیه‌سازی)</h3>
+      <p id="paySum"></p>
+      <button class="cta" id="payBtn">پرداخت و ثبت سفارش ✅</button>
+    </div>
   </div>
 </div>
 
-<div class="modal" id="checkoutModal">
-  <div class="modal-box" id="checkoutBox"></div>
+<!-- فاکتور -->
+<div id="invoice" style="display:none"></div>
+
+<!-- لایت‌باکس -->
+<div class="modal" id="lightbox"><div class="mbox center"><span id="lbClose" class="mclose">✕</span><div id="lbContent" class="lbBig"></div></div></div>
+
+<!-- صفحه ۴۰۴ -->
+<div class="modal" id="nf404">
+  <div class="mbox center">
+    <h1 style="font-size:60px">۴۰۴</h1>
+    <p id="nfMsg">صفحه‌ای که دنبالش بودی پیدا نشد! 😵</p>
+    <button class="cta" id="nfBack">بازگشت به خانه</button>
+  </div>
 </div>
 
-<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')"><img id="lbImg" alt=""></div>
-
-<div id="invoice"></div>
-
-<div class="toast" id="toast"></div>
-
-<script src="script.js"></script>
+<div id="toast"></div>
+<script src="script.js?v=3"></script>
 </body>
 </html>
