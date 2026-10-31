@@ -28,22 +28,20 @@ function popSound(){
     o.start(); o.stop(a.currentTime+.2);
   }catch(e){}
 }
-/* فس‌فسک اختصاصی هر قوطی: نویز + فیلتر bandpass با فرکانس مخصوص همون طعم + بلبل‌زبان گاز */
+/* فس‌فسک اختصاصی هر قوطی */
 function playFizz(i){
   try{
     const a=getAC(), c=CANS[i];
-    // هیسِ گاز
     const src=a.createBufferSource(); src.buffer=noiseBuf;
     const bp=a.createBiquadFilter(); bp.type='bandpass';
     bp.frequency.value=c.fizz; bp.Q.value=1.1;
     const g=a.createGain();
     g.gain.setValueAtTime(.0001,a.currentTime);
-    g.gain.exponentialRampToValueAtTime(.28,a.currentTime+.07);   // پاپِ بازشدن در
-    g.gain.exponentialRampToValueAtTime(.12,a.currentTime+.35);   // هیس پایدار
-    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+1.3);  // خاموش شدن
+    g.gain.exponentialRampToValueAtTime(.28,a.currentTime+.07);
+    g.gain.exponentialRampToValueAtTime(.12,a.currentTime+.35);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+1.3);
     src.connect(bp); bp.connect(g); g.connect(a.destination);
     src.start(); src.stop(a.currentTime+1.4);
-    // بلبل‌زبان گاز داخل قوطی
     const o=a.createOscillator(), og=a.createGain();
     o.type='sine';
     o.frequency.setValueAtTime(c.fizz/2, a.currentTime);
@@ -75,7 +73,7 @@ let coins = store.get('hl_coins',0);
 let disc = null;
 let currentCan = 1;
 
-/* ===== قوطی هرو + بکگراند هم‌رنگ قوطی + فیزیک پاندول ===== */
+/* ===== قوطی هرو + فیزیک پاندول ===== */
 let angle=0, vel=0.02;
 function pendulum(){
   if(!document.body.classList.contains('no-motion')){
@@ -90,14 +88,13 @@ function selectCan(i, silent){
   currentCan = i;
   const c=CANS[i];
   document.documentElement.style.setProperty('--brand', c.color);
-  document.documentElement.style.setProperty('--tint', c.color); /* بکگراند کل سایت هم‌رنگ قوطی */
   $('can').style.background=`linear-gradient(120deg,color-mix(in srgb,${c.color} 90%,#000),${c.color} 55%,color-mix(in srgb,${c.color} 70%,#fff))`;
   $('canLabel').textContent=c.name.split(' (')[0];
   if(c.color==='#f2f0ea'||c.color==='#EAE32B') $('canLabel').style.color='#333'; else $('canLabel').style.color='#fff';
   document.querySelectorAll('.can-card').forEach((el,idx)=>el.classList.toggle('active',idx===i));
   if(!silent){ playFizz(i); toast('قوطی «'+c.name+'» باز شد! فس‌فسسس 🥫⚡'); }
 }
-$('can').addEventListener('dblclick',()=>{ // شوک انرژی
+$('can').addEventListener('dblclick',()=>{
   confetti(45); playFizz(currentCan);
   document.body.animate([{filter:'none'},{filter:'brightness(1.6) saturate(1.5)'},{filter:'none'}],{duration:500});
   toast('شوک انرژی! ⚡');
@@ -105,7 +102,7 @@ $('can').addEventListener('dblclick',()=>{ // شوک انرژی
 let typed='';
 addEventListener('keydown',e=>{ typed=(typed+e.key).slice(-5); if(typed==='happy'){ confetti(80); toast('🎉 بارون قوطی!'); for(let i=0;i<15;i++)setTimeout(()=>confetti(8),i*120); } });
 
-/* ===== محصولات — کلیک روی قوطی = انتخاب + فس‌فسک ===== */
+/* ===== محصولات ===== */
 function renderCans(){
   $('cansGrid').innerHTML = CANS.map((c,i)=>`
     <div class="can-card ${i===currentCan?'active':''}">
@@ -237,7 +234,7 @@ $('weight').oninput = function(){
 };
 $('weight').oninput();
 
-/* ===== طعم‌سنج — نتیجه هم قوطیو انتخاب و هم‌رنگ می‌کنه ===== */
+/* ===== طعم‌سنج ===== */
 const QUIZ=[
  {q:'شیرینی دوست داری یا تلخی؟',a:[['شیرین','sweet'],['تلخ','bitter'],['نرم','soft']]},
  {q:'چقدر انرژی لازم داری؟',a:[['خفیف','low'],['متوسط','mid'],['راکت','high']]},
@@ -364,7 +361,7 @@ setInterval(()=>{
   $('campTimer').textContent=`${fa(Math.floor(dc/8.64e7))} روز و ${fa(Math.floor(dc%8.64e7/3.6e6))} ساعت`;
 },1000);
 
-/* ===== بازی — گرفتن قوطی = صدای فس‌فسک ===== */
+/* ===== بازی ===== */
 let gameScore=0, gameRun=false;
 function startGame(){
   gameScore=0; gameRun=true; $('gameScore').textContent='۰';
@@ -423,7 +420,7 @@ const BLOGS=[
 ];
 $('blogBox').innerHTML=BLOGS.map(([t,b])=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${t}</span><span>＋</span></div><div class="acc-body"><p>${b}</p></div></div>`).join('');
 
-/* ===== گالری — کلیک روی هر قوطی = انتخاب + فس‌فسک ===== */
+/* ===== گالری ===== */
 $('galleryBox').innerHTML=CANS.map((c,i)=>`<div class="g-item" style="background:linear-gradient(135deg,color-mix(in srgb,${c.color} 70%,#000),${c.color})" onclick="selectCan(${i});openLB(${i})" title="${c.name}"></div>`).join('');
 function openLB(i){
   const c=CANS[i];
@@ -533,5 +530,5 @@ function toggleMusic(){
 /* ===== init ===== */
 renderCans(); renderCart(); renderBoard(); renderMissions(); renderOrders(); renderMix(); filterByIntensity(200);
 document.querySelector('.suggestion-bar')?.addEventListener('click',toggleMusic);
-selectCan(1, true); /* اولین انتخاب بدون صدا (سیاست autoplay مرورگر) */
+selectCan(1, true);
 requestAnimationFrame(pendulum);
