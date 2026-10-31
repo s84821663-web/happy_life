@@ -3,17 +3,65 @@ const $ = id => document.getElementById(id);
 const fa = n => Number(n).toLocaleString('fa-IR');
 const money = n => fa(n) + ' تومان';
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
-function popSound(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(),g=a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value=880; g.gain.setValueAtTime(.15,a.currentTime); g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.2); o.start(); o.stop(a.currentTime+.2);}catch(e){} }
 function confetti(n=30){ for(let i=0;i<n;i++){ const c=document.createElement('div'); c.textContent=['🎉','⭐','🪙','💛'][i%4]; c.style.cssText=`position:fixed;z-index:400;left:${Math.random()*100}vw;top:-30px;font-size:${12+Math.random()*14}px;pointer-events:none;transition:transform 2.5s linear,opacity 2.5s`; document.body.appendChild(c); requestAnimationFrame(()=>{ c.style.transform=`translateY(${innerHeight+60}px) rotate(${Math.random()*720}deg)`; c.style.opacity='0'; }); setTimeout(()=>c.remove(),2600); } }
 
-/* ===== داده‌ها ===== */
+/* ===== صدا: کانتکست مشترک + بافر نویز برای فس‌فسک ===== */
+let actx=null, noiseBuf=null;
+function getAC(){
+  if(!actx){
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+    const len = actx.sampleRate * 1.5;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+  }
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+function popSound(){
+  try{
+    const a=getAC(), o=a.createOscillator(), g=a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.frequency.value=880;
+    g.gain.setValueAtTime(.15,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.2);
+    o.start(); o.stop(a.currentTime+.2);
+  }catch(e){}
+}
+/* فس‌فسک اختصاصی هر قوطی: نویز + فیلتر bandpass با فرکانس مخصوص همون طعم + بلبل‌زبان گاز */
+function playFizz(i){
+  try{
+    const a=getAC(), c=CANS[i];
+    // هیسِ گاز
+    const src=a.createBufferSource(); src.buffer=noiseBuf;
+    const bp=a.createBiquadFilter(); bp.type='bandpass';
+    bp.frequency.value=c.fizz; bp.Q.value=1.1;
+    const g=a.createGain();
+    g.gain.setValueAtTime(.0001,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.28,a.currentTime+.07);   // پاپِ بازشدن در
+    g.gain.exponentialRampToValueAtTime(.12,a.currentTime+.35);   // هیس پایدار
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+1.3);  // خاموش شدن
+    src.connect(bp); bp.connect(g); g.connect(a.destination);
+    src.start(); src.stop(a.currentTime+1.4);
+    // بلبل‌زبان گاز داخل قوطی
+    const o=a.createOscillator(), og=a.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(c.fizz/2, a.currentTime);
+    o.frequency.exponentialRampToValueAtTime(c.fizz/4, a.currentTime+.9);
+    og.gain.setValueAtTime(.06,a.currentTime);
+    og.gain.exponentialRampToValueAtTime(.001,a.currentTime+1);
+    o.connect(og); og.connect(a.destination); o.start(); o.stop(a.currentTime+1.1);
+  }catch(e){}
+}
+
+/* ===== داده‌ها — fizz = فرکانس فس‌فسک هر طعم ===== */
 const CANS = [
- {name:'کولا نایت', color:'#1c1c24', price:90000, caf:150, tag:'کلاسیک شبانه'},
- {name:'بنفش برقی', color:'#7C3AED', price:85000, caf:120, tag:'پرفروش‌ترین'},
- {name:'نارنجی آتش', color:'#F25C05', price:95000, caf:180, tag:'انرژی حداکثری'},
- {name:'زرد لیمویی (بدون شکر)', color:'#EAE32B', price:88000, caf:90, tag:'رژیمی'},
- {name:'آبی یخی', color:'#38BDF8', price:90000, caf:140, tag:'خنک و ملایم'},
- {name:'سفید وانیلی', color:'#f2f0ea', price:92000, caf:110, tag:'کرمی و نرم'},
+ {name:'کولا نایت', color:'#1c1c24', price:90000, caf:150, fizz:700,  tag:'کلاسیک شبانه — گاز بم و غلیظ'},
+ {name:'بنفش برقی', color:'#7C3AED', price:85000, caf:120, fizz:1400, tag:'پرفروش‌ترین — گاز متعادل'},
+ {name:'نارنجی آتش', color:'#F25C05', price:95000, caf:180, fizz:2200, tag:'انرژی حداکثری — گاز تند'},
+ {name:'زرد لیمویی (بدون شکر)', color:'#EAE32B', price:88000, caf:90, fizz:2900, tag:'رژیمی — زیر و تیز'},
+ {name:'آبی یخی', color:'#38BDF8', price:90000, caf:140, fizz:1800, tag:'خنک و ملایم'},
+ {name:'سفید وانیلی', color:'#f2f0ea', price:92000, caf:110, fizz:950, tag:'کرمی و نرم — گاز لطیف'},
 ];
 const CODES = { HAPPY20:20, LIFE15:15, LIFE10:10, LIFE5:5, FALL25:25, BDAY30:30, FREESHIP:'ship' };
 
@@ -25,11 +73,12 @@ const store = {
 let cart = store.get('hl_cart',[]);
 let coins = store.get('hl_coins',0);
 let disc = null;
+let currentCan = 1;
 
-/* ===== قوطی هرو + فیزیک پاندول ===== */
-let angle=0, vel=0.02, pendOn=true;
+/* ===== قوطی هرو + بکگراند هم‌رنگ قوطی + فیزیک پاندول ===== */
+let angle=0, vel=0.02;
 function pendulum(){
-  if(pendOn && !document.body.classList.contains('no-motion')){
+  if(!document.body.classList.contains('no-motion')){
     vel += Math.sin(angle)*0.0006;
     vel *= 0.995;
     angle += vel;
@@ -37,29 +86,32 @@ function pendulum(){
   }
   requestAnimationFrame(pendulum);
 }
-function selectCan(i){
+function selectCan(i, silent){
+  currentCan = i;
   const c=CANS[i];
   document.documentElement.style.setProperty('--brand', c.color);
+  document.documentElement.style.setProperty('--tint', c.color); /* بکگراند کل سایت هم‌رنگ قوطی */
   $('can').style.background=`linear-gradient(120deg,color-mix(in srgb,${c.color} 90%,#000),${c.color} 55%,color-mix(in srgb,${c.color} 70%,#fff))`;
   $('canLabel').textContent=c.name.split(' (')[0];
   if(c.color==='#f2f0ea'||c.color==='#EAE32B') $('canLabel').style.color='#333'; else $('canLabel').style.color='#fff';
-  toast('قوطی «'+c.name+'» انتخاب شد ⚡');
+  document.querySelectorAll('.can-card').forEach((el,idx)=>el.classList.toggle('active',idx===i));
+  if(!silent){ playFizz(i); toast('قوطی «'+c.name+'» باز شد! فس‌فسسس 🥫⚡'); }
 }
-$('can').addEventListener('dblclick',()=>{
-  confetti(45); popSound();
+$('can').addEventListener('dblclick',()=>{ // شوک انرژی
+  confetti(45); playFizz(currentCan);
   document.body.animate([{filter:'none'},{filter:'brightness(1.6) saturate(1.5)'},{filter:'none'}],{duration:500});
   toast('شوک انرژی! ⚡');
 });
 let typed='';
 addEventListener('keydown',e=>{ typed=(typed+e.key).slice(-5); if(typed==='happy'){ confetti(80); toast('🎉 بارون قوطی!'); for(let i=0;i<15;i++)setTimeout(()=>confetti(8),i*120); } });
 
-/* ===== محصولات ===== */
+/* ===== محصولات — کلیک روی قوطی = انتخاب + فس‌فسک ===== */
 function renderCans(){
   $('cansGrid').innerHTML = CANS.map((c,i)=>`
-    <div class="can-card">
-      <div class="can-mini" style="background:linear-gradient(120deg,color-mix(in srgb,${c.color} 85%,#000),${c.color})"></div>
+    <div class="can-card ${i===currentCan?'active':''}">
+      <div class="can-mini" title="انتخاب ${c.name}" style="background:linear-gradient(120deg,color-mix(in srgb,${c.color} 85%,#000),${c.color})" onclick="selectCan(${i})"></div>
       <h3>${c.name}</h3>
-      <p>${c.tag} • کافئین ${fa(c.caf)}mg</p>
+      <p>${c.tag}<br>کافئین ${fa(c.caf)}mg</p>
       <b>${money(c.price)}</b><br>
       <button class="btn main" style="margin-top:8px" onclick="addCart(${i})">🛒 خرید</button>
       <button class="btn tiny" onclick="shareCan(${i})" style="margin-top:8px">اشتراک ↗</button>
@@ -73,8 +125,7 @@ function shareCan(i){
 }
 
 /* ===== سبد ===== */
-function addCart(i){ cart.push({i,qty:1}); saveCart(); popSound(); toast('به سبد اضافه شد 🛒'); }
-function saveCart(){ store.set('hl_cart',cart); renderCart(); }
+function addCart(i){ cart.push({i,qty:1}); store.set('hl_cart',cart); popSound(); playFizz(i); renderCart(); toast('به سبد اضافه شد 🛒'); }
 function toggleCart(){ $('cartDrawer').classList.toggle('open'); renderCart(); }
 function cartSum(){ return cart.reduce((s,l)=>s+CANS[l.i].price*l.qty,0); }
 function renderCart(){
@@ -82,7 +133,7 @@ function renderCart(){
   $('cartItems').innerHTML = cart.length? cart.map((l,idx)=>`
     <div class="cart-line"><span>${CANS[l.i].name} ×${fa(l.qty)}</span>
       <span>${money(CANS[l.i].price*l.qty)}
-      <button class="btn tiny" onclick="cart.splice(${idx},1);saveCart()">🗑</button></span>
+      <button class="btn tiny" onclick="cart.splice(${idx},1);store.set('hl_cart',cart);renderCart()">🗑</button></span>
     </div>`).join('') : '<p>سبد خالیه برادر!</p>';
   let total = cartSum();
   if(typeof disc==='number') total = Math.round(total*(1-disc/100));
@@ -137,10 +188,10 @@ function payDone(){
   orders.unshift({date:new Date().toLocaleDateString('fa-IR'), items:cart.length, total});
   store.set('hl_orders',orders);
   printInvoice(total);
-  cart=[]; disc=null; saveCart();
+  cart=[]; disc=null; store.set('hl_cart',cart);
   $('checkoutModal').classList.remove('open');
   confetti(); toast(`سفارش ثبت شد! ${fa(earned)} هپی‌کوین گرفتی 🪙`);
-  renderOrders(); renderBoard();
+  renderOrders(); renderBoard(); renderCart();
 }
 function printInvoice(total){
   $('invoice').innerHTML=`<h2>فاکتور فروش هپی‌لایف</h2>
@@ -186,7 +237,7 @@ $('weight').oninput = function(){
 };
 $('weight').oninput();
 
-/* ===== طعم‌سنج ===== */
+/* ===== طعم‌سنج — نتیجه هم قوطیو انتخاب و هم‌رنگ می‌کنه ===== */
 const QUIZ=[
  {q:'شیرینی دوست داری یا تلخی؟',a:[['شیرین','sweet'],['تلخ','bitter'],['نرم','soft']]},
  {q:'چقدر انرژی لازم داری؟',a:[['خفیف','low'],['متوسط','mid'],['راکت','high']]},
@@ -227,7 +278,8 @@ function addMix(){
   const sel=mixSel();
   if(!sel.length){ toast('اول طعم‌ها رو انتخاب کن!'); return; }
   sel.forEach(i=>cart.push({i,qty:1}));
-  saveCart(); confetti(15); toast('باکس ترکیبی به سبد اضافه شد 🎁');
+  store.set('hl_cart',cart); renderCart();
+  confetti(15); toast('باکس ترکیبی به سبد اضافه شد 🎁');
 }
 
 /* ===== چرخ شانس ===== */
@@ -237,6 +289,7 @@ function spinWheel(){
   if(spinning) return; spinning=true;
   wheelDeg += 1080 + Math.random()*360;
   $('wheelEl').style.transform=`rotate(${wheelDeg}deg)`;
+  missionDone('spin');
   setTimeout(()=>{
     spinning=false;
     const idx = Math.floor(((360 - (wheelDeg%360)) % 360) / 60);
@@ -297,7 +350,7 @@ function renderOrders(){
 /* ===== جعبه هدیه ===== */
 function addGift(){
   cart.push({i:1,qty:6});
-  saveCart(); toast('جعبه هدیه به سبد اضافه شد 🎁');
+  store.set('hl_cart',cart); renderCart(); toast('جعبه هدیه به سبد اضافه شد 🎁');
 }
 
 /* ===== شمارنده‌ها ===== */
@@ -311,7 +364,7 @@ setInterval(()=>{
   $('campTimer').textContent=`${fa(Math.floor(dc/8.64e7))} روز و ${fa(Math.floor(dc%8.64e7/3.6e6))} ساعت`;
 },1000);
 
-/* ===== بازی ===== */
+/* ===== بازی — گرفتن قوطی = صدای فس‌فسک ===== */
 let gameScore=0, gameRun=false;
 function startGame(){
   gameScore=0; gameRun=true; $('gameScore').textContent='۰';
@@ -331,9 +384,12 @@ function startGame(){
       if(y>area.clientHeight-40){ clearInterval(fall); el.remove(); }
     },40);
     el.addEventListener('pointerdown',()=>{
-      clearInterval(fall); el.remove(); popSound();
-      if(bomb){ gameScore=Math.max(0,gameScore-2); }
-      else{ gameScore++; if(gameScore%5===0){ coins++; store.set('hl_coins',coins); renderBoard(); toast('+۱ هپی‌کوین 🪙'); } }
+      clearInterval(fall); el.remove();
+      if(bomb){ gameScore=Math.max(0,gameScore-2); popSound(); }
+      else{
+        gameScore++; playFizz(Math.floor(Math.random()*CANS.length));
+        if(gameScore%5===0){ coins++; store.set('hl_coins',coins); renderBoard(); toast('+۱ هپی‌کوین 🪙'); }
+      }
       $('gameScore').textContent=fa(gameScore);
     });
   },700);
@@ -367,8 +423,8 @@ const BLOGS=[
 ];
 $('blogBox').innerHTML=BLOGS.map(([t,b])=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${t}</span><span>＋</span></div><div class="acc-body"><p>${b}</p></div></div>`).join('');
 
-/* ===== گالری ===== */
-$('galleryBox').innerHTML=CANS.map((c,i)=>`<div class="g-item" style="background:linear-gradient(135deg,color-mix(in srgb,${c.color} 70%,#000),${c.color})" onclick="openLB(${i})" title="${c.name}"></div>`).join('');
+/* ===== گالری — کلیک روی هر قوطی = انتخاب + فس‌فسک ===== */
+$('galleryBox').innerHTML=CANS.map((c,i)=>`<div class="g-item" style="background:linear-gradient(135deg,color-mix(in srgb,${c.color} 70%,#000),${c.color})" onclick="selectCan(${i});openLB(${i})" title="${c.name}"></div>`).join('');
 function openLB(i){
   const c=CANS[i];
   const img=$('lbImg');
@@ -382,7 +438,7 @@ const SALES=[420,655,530,700,810,640,905], DAYS=['ش','ی','د','س','چ','پ','
 $('salesBars').innerHTML=SALES.map((v,i)=>`<div class="bar" style="height:${Math.round(v/905*100)}%"><span>${DAYS[i]}</span></div>`).join('');
 
 /* ===== جشن تولد ===== */
-function simBday(){ confetti(60); toast('🎂 تولد هپی‌لایف مبارک! کد BDAY30 فعاله'); }
+function simBday(){ confetti(60); playFizz(2); toast('🎂 تولد هپی‌لایف مبارک! کد BDAY30 فعاله'); }
 
 /* ===== فرم‌ها ===== */
 function submitContact(){
@@ -414,13 +470,14 @@ const CHAT_RULES=[
  [['ارسال','پست','پیک'],'پست ۲۵ هزار و پیک ۶۰ هزار تومنه 🚚'],
  [['تخفیف','کد'],'کد HAPPY20 الان فعاله! کدهای دیگه: LIFE15 ، FALL25 ، BDAY30 🎟'],
  [['کافئین'],'کافئین‌سنج بالای صفحه رو امتحان کن ☕'],
+ [['فس','صدا','گاز'],'هر قوطی فس‌فسک خودشو داره! روی قوطی‌ها کلیک کن و بشنو 🥫🎧'],
  [['تماس','پشتیبان','سوال'],'برای پشتیبانی واقعی به @hooshahelp در تلگرام پیام بده 💬'],
 ];
 function toggleChat(){ $('chatbot').classList.toggle('open'); }
 function botReply(t){
   t=t.toLowerCase();
   for(const [keys,ans] of CHAT_RULES) if(keys.some(k=>t.includes(k))) return ans;
-  return 'نشد بگیرم منظورت رو 😅 از این کلمات استفاده کن: قیمت، ارسال، تخفیف، کافئین، پشتیبانی';
+  return 'نشد بگیرم منظورت رو 😅 از این کلمات استفاده کن: قیمت، ارسال، تخفیف، کافئین، فس، پشتیبانی';
 }
 function sendChat(){
   const v=$('chatIn').value.trim(); if(!v) return;
@@ -452,19 +509,19 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.ta
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
 /* ===== موزیک پس‌زمینه (WebAudio) ===== */
-let musicOn=false, ac=null, musicNodes=[];
+let musicOn=false, musicNodes=[];
 function toggleMusic(){
   if(!musicOn){
-    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const a=getAC();
     const notes=[220,277,330,440];
     let i=0;
     musicNodes.push(setInterval(()=>{
-      const o=ac.createOscillator(), g=ac.createGain();
-      o.connect(g); g.connect(ac.destination);
+      const o=a.createOscillator(), g=a.createGain();
+      o.connect(g); g.connect(a.destination);
       o.type='triangle'; o.frequency.value=notes[i++%4];
-      g.gain.setValueAtTime(.04,ac.currentTime);
-      g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.5);
-      o.start(); o.stop(ac.currentTime+.5);
+      g.gain.setValueAtTime(.04,a.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);
+      o.start(); o.stop(a.currentTime+.5);
     },500));
     musicOn=true; toast('موزیک روشن شد 🎵');
   } else {
@@ -476,5 +533,5 @@ function toggleMusic(){
 /* ===== init ===== */
 renderCans(); renderCart(); renderBoard(); renderMissions(); renderOrders(); renderMix(); filterByIntensity(200);
 document.querySelector('.suggestion-bar')?.addEventListener('click',toggleMusic);
-selectCan(1);
+selectCan(1, true); /* اولین انتخاب بدون صدا (سیاست autoplay مرورگر) */
 requestAnimationFrame(pendulum);
