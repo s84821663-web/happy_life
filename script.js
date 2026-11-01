@@ -1,546 +1,534 @@
-/* ===== ابزار ===== */
-const $=id=>document.getElementById(id);
-const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-const money=n=>fa(n.toLocaleString('en-US'))+' تومان';
-const store={
-  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
-  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
-};
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2600)}
+/* ===== helpers ===== */
+const $ = id => document.getElementById(id);
+const fa = n => Number(n).toLocaleString('fa-IR');
+const money = n => fa(n) + ' تومان';
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function confetti(n=30){ for(let i=0;i<n;i++){ const c=document.createElement('div'); c.textContent=['🎉','⭐','🪙','💛'][i%4]; c.style.cssText=`position:fixed;z-index:400;left:${Math.random()*100}vw;top:-30px;font-size:${12+Math.random()*14}px;pointer-events:none;transition:transform 2.5s linear,opacity 2.5s`; document.body.appendChild(c); requestAnimationFrame(()=>{ c.style.transform=`translateY(${innerHeight+60}px) rotate(${Math.random()*720}deg)`; c.style.opacity='0'; }); setTimeout(()=>c.remove(),2600); } }
 
-/* ===== صدا (وب‌اودیو) ===== */
-let actx=null,noiseBuf=null;
+/* ===== صدا: کانتکست مشترک + بافر نویز برای فس‌فسک ===== */
+let actx=null, noiseBuf=null;
 function getAC(){
-  if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();
-    noiseBuf=actx.createBuffer(1,actx.sampleRate*1.5,actx.sampleRate);
-    const d=noiseBuf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  if(!actx){
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+    const len = actx.sampleRate * 1.5;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
   }
-  if(actx.state==='suspended')actx.resume();
+  if(actx.state==='suspended') actx.resume();
   return actx;
 }
-function playFizz(i){ /* فس‌فسک اختصاصی هر قوطی */
+function popSound(){
   try{
-    const ac=getAC(),t=ac.currentTime;
-    const src=ac.createBufferSource();src.buffer=noiseBuf;
-    const bp=ac.createBiquadFilter();bp.type='bandpass';
-    bp.frequency.value=CANS[i].fizz;bp.Q.value=1.2;
-    const g=ac.createGain();
-    g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(.5,t+.05);
-    g.gain.exponentialRampToValueAtTime(.001,t+1.1);
-    src.connect(bp).connect(g).connect(ac.destination);
-    src.start(t);src.stop(t+1.2);
-    const o=ac.createOscillator(),og=ac.createGain();o.type='sine';
-    o.frequency.setValueAtTime(CANS[i].fizz*4,t);
-    o.frequency.exponentialRampToValueAtTime(CANS[i].fizz*2,t+.3);
-    og.gain.setValueAtTime(.08,t);og.gain.exponentialRampToValueAtTime(.001,t+.35);
-    o.connect(og).connect(ac.destination);o.start(t);o.stop(t+.4);
+    const a=getAC(), o=a.createOscillator(), g=a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.frequency.value=880;
+    g.gain.setValueAtTime(.15,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.2);
+    o.start(); o.stop(a.currentTime+.2);
   }catch(e){}
 }
-function popSound(){
-  try{const ac=getAC(),t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
-    o.type='triangle';o.frequency.setValueAtTime(600,t);o.frequency.exponentialRampToValueAtTime(200,t+.12);
-    g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
-    o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.16);}catch(e){}
+/* فس‌فسک اختصاصی هر قوطی */
+function playFizz(i){
+  try{
+    const a=getAC(), c=CANS[i];
+    const src=a.createBufferSource(); src.buffer=noiseBuf;
+    const bp=a.createBiquadFilter(); bp.type='bandpass';
+    bp.frequency.value=c.fizz; bp.Q.value=1.1;
+    const g=a.createGain();
+    g.gain.setValueAtTime(.0001,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.28,a.currentTime+.07);
+    g.gain.exponentialRampToValueAtTime(.12,a.currentTime+.35);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+1.3);
+    src.connect(bp); bp.connect(g); g.connect(a.destination);
+    src.start(); src.stop(a.currentTime+1.4);
+    const o=a.createOscillator(), og=a.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(c.fizz/2, a.currentTime);
+    o.frequency.exponentialRampToValueAtTime(c.fizz/4, a.currentTime+.9);
+    og.gain.setValueAtTime(.06,a.currentTime);
+    og.gain.exponentialRampToValueAtTime(.001,a.currentTime+1);
+    o.connect(og); og.connect(a.destination); o.start(); o.stop(a.currentTime+1.1);
+  }catch(e){}
 }
 
-/* ===== قوطی‌ها ===== */
-const CANS=[
-  {name:'کولا نایت',color:'#1c1c24',price:85000,fizz:700, light:false, caf:150, desc:'تیره و مرموز، شب‌های بیداری 🌙'},
-  {name:'بنفش برقی',color:'#7C3AED',price:90000,fizz:1400,light:false, caf:160, desc:'محبوب‌ترین! شارژ خالص انرژی 💜'},
-  {name:'نارنجی آتش',color:'#F25C05',price:92000,fizz:2200,light:false, caf:180, desc:'آتش‌بازی تو دهنت! 🔥'},
-  {name:'زرد لیمویی',color:'#EAE32B',price:88000,fizz:2900,light:true, caf:120, desc:'ترش و تازه، انرژی سبک 🍋'},
-  {name:'آبی یخی',color:'#38BDF8',price:90000,fizz:1800,light:false, caf:140, desc:'یخی خنک، مخصوص تابستان ❄️'},
-  {name:'سفید وانیلی',color:'#f2f0ea',price:95000,fizz:950, light:true, caf:100, desc:'نرم و وانیلی، شبیه دسر 🍦'}
+/* ===== داده‌ها — fizz = فرکانس فس‌فسک هر طعم ===== */
+const CANS = [
+ {name:'کولا نایت', color:'#1c1c24', price:90000, caf:150, fizz:700,  tag:'کلاسیک شبانه — گاز بم و غلیظ'},
+ {name:'بنفش برقی', color:'#7C3AED', price:85000, caf:120, fizz:1400, tag:'پرفروش‌ترین — گاز متعادل'},
+ {name:'نارنجی آتش', color:'#F25C05', price:95000, caf:180, fizz:2200, tag:'انرژی حداکثری — گاز تند'},
+ {name:'زرد لیمویی (بدون شکر)', color:'#EAE32B', price:88000, caf:90, fizz:2900, tag:'رژیمی — زیر و تیز'},
+ {name:'آبی یخی', color:'#38BDF8', price:90000, caf:140, fizz:1800, tag:'خنک و ملایم'},
+ {name:'سفید وانیلی', color:'#f2f0ea', price:92000, caf:110, fizz:950, tag:'کرمی و نرم — گاز لطیف'},
 ];
-/* قوطی روز + کد DAY10 */
-const CODES={HAPPY20:20,LIFE15:15,LIFE10:10,LIFE5:5,FALL25:25,BDAY30:30,FREESHIP:'ship'};
-const dayIdx=new Date().getDate()%6;
-CODES.DAY10=10;
-$('dayCanTxt').innerHTML=`امروز نوبت <b style="color:${CANS[dayIdx].color}">${CANS[dayIdx].name}</b> است!`;
+const CODES = { HAPPY20:20, LIFE15:15, LIFE10:10, LIFE5:5, FALL25:25, BDAY30:30, FREESHIP:'ship' };
 
-/* ===== ساخت قوطی‌های آویزون + فیزیک پاندول ===== */
-const canRow=$('canRow'),hangs=[];
-CANS.forEach((c,i)=>{
-  const h=document.createElement('div');
-  h.className='hang';
-  h.innerHTML=`<div class="string"></div><div class="can ${c.light?'light':''}" style="background:linear-gradient(105deg,${c.color},${c.color} 60%,rgba(255,255,255,.15))"><span>${c.name}</span></div>`;
-  h.title=c.name+' — کلیک: تغییر رنگ | دابل‌کلیک: شوک انرژی ⚡';
-  h.addEventListener('click',()=>{h._vel+=(Math.random()>.5?1:-1)*2.4;selectCan(i)});
-  h.addEventListener('dblclick',()=>energyShock(i));
-  canRow.appendChild(h);
-  hangs.push({el:h,angle:(i%2?1:-1)*.12,vel:0});
-});
-let lastT=0,noMotion=false;
-function tick(t){
-  const dt=Math.min((t-lastT)/1000,.05)||.016;lastT=t;
-  if(!noMotion)hangs.forEach(h=>{
-    h.vel+=(-6*Math.sin(h.angle)-.35*h.vel)*dt; // فیزیک پاندول: جاذبه + میرایی
-    h.angle+=h.vel*dt;
-    h.el.style.transform=`rotate(${h.angle}rad)`;
-  });
-  requestAnimationFrame(tick);
+/* ===== storage ===== */
+const store = {
+  get(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+let cart = store.get('hl_cart',[]);
+let coins = store.get('hl_coins',0);
+let disc = null;
+let currentCan = 1;
+
+/* ===== قوطی هرو + فیزیک پاندول ===== */
+let angle=0, vel=0.02;
+function pendulum(){
+  if(!document.body.classList.contains('no-motion')){
+    vel += Math.sin(angle)*0.0006;
+    vel *= 0.995;
+    angle += vel;
+    $('heroCan').style.transform = `rotate(${angle*14}deg)`;
+  }
+  requestAnimationFrame(pendulum);
 }
-requestAnimationFrame(tick);
-/* باد با حرکت موس */
-document.addEventListener('mousemove',e=>{
-  if(noMotion)return;
-  hangs.forEach(h=>{
-    const r=h.el.getBoundingClientRect();
-    const d=Math.abs(e.clientX-(r.left+r.width/2));
-    if(d<160)h._vel=h.vel+=(e.movementX||0)*.0016*(1-d/160);
-  });
+function selectCan(i, silent){
+  currentCan = i;
+  const c=CANS[i];
+  document.documentElement.style.setProperty('--brand', c.color);
+  $('can').style.background=`linear-gradient(120deg,color-mix(in srgb,${c.color} 90%,#000),${c.color} 55%,color-mix(in srgb,${c.color} 70%,#fff))`;
+  $('canLabel').textContent=c.name.split(' (')[0];
+  if(c.color==='#f2f0ea'||c.color==='#EAE32B') $('canLabel').style.color='#333'; else $('canLabel').style.color='#fff';
+  document.querySelectorAll('.can-card').forEach((el,idx)=>el.classList.toggle('active',idx===i));
+  if(!silent){ playFizz(i); toast('قوطی «'+c.name+'» باز شد! فس‌فسسس 🥫⚡'); }
+}
+$('can').addEventListener('dblclick',()=>{
+  confetti(45); playFizz(currentCan);
+  document.body.animate([{filter:'none'},{filter:'brightness(1.6) saturate(1.5)'},{filter:'none'}],{duration:500});
+  toast('شوک انرژی! ⚡');
 });
+let typed='';
+addEventListener('keydown',e=>{ typed=(typed+e.key).slice(-5); if(typed==='happy'){ confetti(80); toast('🎉 بارون قوطی!'); for(let i=0;i<15;i++)setTimeout(()=>confetti(8),i*120); } });
 
-/* ===== انتخاب قوطی: رنگ کل سایت + فس‌فسک ===== */
-function selectCan(i,silent){
-  document.documentElement.style.setProperty('--brand',CANS[i].color);
-  hangs.forEach((h,j)=>h.el.classList.toggle('active',j===i));
-  document.querySelectorAll('.canCard').forEach((c,j)=>c.classList.toggle('active',j===i));
-  $('brandWord').textContent=CANS[i].name;
-  renderRate();
-  if(!silent){
-    playFizz(i);
-    toast('🎨 رنگ سایت شد: '+CANS[i].name+' '+CANS[i].desc);
+/* ===== محصولات ===== */
+function renderCans(){
+  $('cansGrid').innerHTML = CANS.map((c,i)=>`
+    <div class="can-card ${i===currentCan?'active':''}">
+      <div class="can-mini" title="انتخاب ${c.name}" style="background:linear-gradient(120deg,color-mix(in srgb,${c.color} 85%,#000),${c.color})" onclick="selectCan(${i})"></div>
+      <h3>${c.name}</h3>
+      <p>${c.tag}<br>کافئین ${fa(c.caf)}mg</p>
+      <b>${money(c.price)}</b><br>
+      <button class="btn main" style="margin-top:8px" onclick="addCart(${i})">🛒 خرید</button>
+      <button class="btn tiny" onclick="shareCan(${i})" style="margin-top:8px">اشتراک ↗</button>
+      <div class="rate" data-can="${i}">${rateStars(i)}</div>
+    </div>`).join('');
+}
+function shareCan(i){
+  const c=CANS[i], txt=`من قوطی ${c.name} هپی‌لایف رو پیشنهاد می‌کنم! ⚡`;
+  if(navigator.share){ navigator.share({title:'هپی‌لایف',text:txt}).catch(()=>{}); }
+  else{ navigator.clipboard?.writeText(txt); toast('متن اشتراک کپی شد 📋'); }
+}
+
+/* ===== سبد ===== */
+function addCart(i){ cart.push({i,qty:1}); store.set('hl_cart',cart); popSound(); playFizz(i); renderCart(); toast('به سبد اضافه شد 🛒'); }
+function toggleCart(){ $('cartDrawer').classList.toggle('open'); renderCart(); }
+function cartSum(){ return cart.reduce((s,l)=>s+CANS[l.i].price*l.qty,0); }
+function renderCart(){
+  $('cartCount').textContent = fa(cart.length);
+  $('cartItems').innerHTML = cart.length? cart.map((l,idx)=>`
+    <div class="cart-line"><span>${CANS[l.i].name} ×${fa(l.qty)}</span>
+      <span>${money(CANS[l.i].price*l.qty)}
+      <button class="btn tiny" onclick="cart.splice(${idx},1);store.set('hl_cart',cart);renderCart()">🗑</button></span>
+    </div>`).join('') : '<p>سبد خالیه برادر!</p>';
+  let total = cartSum();
+  if(typeof disc==='number') total = Math.round(total*(1-disc/100));
+  $('cartTotal').textContent = money(total);
+}
+function applyDisc(){
+  const code = $('discIn').value.trim().toUpperCase();
+  if(!(code in CODES)){ $('discMsg').innerHTML='<span style="color:var(--err)">کد نامعتبره ❌</span>'; return; }
+  disc = CODES[code];
+  $('discMsg').innerHTML = `<span style="color:var(--ok)">کد ${code} اعمال شد ✅</span>`;
+  renderCart();
+}
+function copyCode(){ navigator.clipboard?.writeText($('dailyCode').textContent); toast('کد کپی شد 📋'); }
+function copyCodeF(c){ navigator.clipboard?.writeText(c); toast('کد '+c+' کپی شد 📋'); }
+
+/* ===== چک‌اوت ۳ مرحله‌ای ===== */
+let step=1, shipCost=0;
+function startCheckout(){ if(!cart.length){ toast('سبد خالیه!'); return; } step=1; renderCheckout(); $('checkoutModal').classList.add('open'); }
+function renderCheckout(){
+  const box=$('checkoutBox');
+  if(step===1){
+    box.innerHTML=`<h3>۱) روش ارسال</h3>
+      <label><input type="radio" name="ship" value="25000" onchange="shipCost=+this.value;goStep2()"> پست (۲۵٬۰۰۰)</label>
+      <label><input type="radio" name="ship" value="60000" onchange="shipCost=+this.value;goStep2()"> پیک (۶۰٬۰۰۰)</label>
+      <button class="x" onclick="closeCheckout()">✕</button>`;
+  } else if(step===2){
+    box.innerHTML=`<h3>۲) اطلاعات گیرنده</h3>
+      <input id="ckName" placeholder="نام و نام خانوادگی">
+      <input id="ckAddr" placeholder="آدرس">
+      <input id="ckPhone" placeholder="موبایل">
+      <button class="btn main" onclick="goStep3()">ادامه</button>
+      <button class="x" onclick="closeCheckout()">✕</button>`;
+  } else {
+    const total = cartSum() + shipCost;
+    box.innerHTML=`<h3>۳) تأیید و پرداخت (شبیه‌سازی)</h3>
+      <p>اقلام: ${fa(cart.length)} قوطی</p><p>ارسال: ${money(shipCost)}</p>
+      <p><b>جمع نهایی: ${money(total)}</b></p>
+      <button class="btn main" onclick="payDone()">پرداخت و ثبت</button>
+      <button class="x" onclick="closeCheckout()">✕</button>`;
   }
 }
-function energyShock(i){
-  playFizz(i);
-  burstConfetti(CANS[i].color);
-  document.body.animate([{filter:'brightness(1)'},{filter:'brightness(1.6)'},{filter:'brightness(1)'}],{duration:450});
-  toast('⚡ شوک انرژی! '+CANS[i].name);
-  const c=store.get('hl_coins',0);store.set('hl_coins',c+2);renderCoins();
+function goStep2(){ step=2; renderCheckout(); }
+function goStep3(){
+  if(!$('ckName').value || !$('ckAddr').value || !$('ckPhone').value){ toast('همه فیلدها رو پر کن!'); return; }
+  step=3; renderCheckout();
 }
-selectCan(1,true); // لود اولیه بدون صدا (سیاست autoplay مرورگر)
-
-/* ===== کارت‌های قوطی ===== */
-const cardsBox=$('canCards');
-CANS.forEach((c,i)=>{
-  const d=document.createElement('div');
-  d.className='canCard';
-  d.innerHTML=`<div class="mini" style="background:linear-gradient(105deg,${c.color},rgba(255,255,255,.15))"></div><b>${c.name}</b><p>${c.desc}</p><p class="pr">${money(c.price)}</p><button class="cta">افزودن به سبد</button>`;
-  d.querySelector('button').onclick=e=>{e.stopPropagation();addCart(i)};
-  d.onclick=()=>selectCan(i);
-  cardsBox.appendChild(d);
-});
-document.querySelectorAll('.card,.canCard,.secT').forEach(el=>el.classList.add('reveal'));
-
-/* ===== امتیاز ستاره‌ای ===== */
-function renderRate(){
-  const r=store.get('hl_ratings',{});
-  const row=$('rateRow');row.innerHTML='';
-  for(let s=1;s<=5;s++){
-    const st=document.createElement('span');
-    st.textContent=s<=(r[dayIdx]||0)?'⭐':'☆';
-    st.onclick=()=>{r[dayIdx]=s;store.set('hl_ratings',r);renderRate();toast('⭐ ممنون! به '+CANS[dayIdx].name+' '+fa(s)+' ستاره دادی')};
-    row.appendChild(st);
-  }
-  $('rateInfo').textContent='امتیاز فعلی '+CANS[dayIdx].name+': '+fa(r[dayIdx]||0)+' از ۵ — می‌تونی عوضش کنی!';
+function payDone(){
+  const total = cartSum() + shipCost;
+  const earned = Math.floor(total/10000);
+  coins += earned; store.set('hl_coins',coins);
+  const orders = store.get('hl_orders',[]);
+  orders.unshift({date:new Date().toLocaleDateString('fa-IR'), items:cart.length, total});
+  store.set('hl_orders',orders);
+  printInvoice(total);
+  cart=[]; disc=null; store.set('hl_cart',cart);
+  $('checkoutModal').classList.remove('open');
+  confetti(); toast(`سفارش ثبت شد! ${fa(earned)} هپی‌کوین گرفتی 🪙`);
+  renderOrders(); renderBoard(); renderCart();
 }
+function printInvoice(total){
+  $('invoice').innerHTML=`<h2>فاکتور فروش هپی‌لایف</h2>
+    <p>تاریخ: ${new Date().toLocaleDateString('fa-IR')}</p>
+    <table><tr><th>محصول</th><th>تعداد</th><th>قیمت</th></tr>
+    ${cart.map(l=>`<tr><td>${CANS[l.i].name}</td><td>${fa(l.qty)}</td><td>${fa(CANS[l.i].price*l.qty)}</td></tr>`).join('')}
+    <tr><th>ارسال</th><th>—</th><th>${fa(shipCost)}</th></tr>
+    <tr><th>جمع</th><th>—</th><th>${fa(total)}</th></tr></table>
+    <p>⚠️ پرداخت شبیه‌سازی‌شده است.</p>`;
+  window.print();
+}
+function closeCheckout(){ $('checkoutModal').classList.remove('open'); }
+
+/* ===== قوطی امروز ===== */
+(function(){
+  const idx = new Date().getDate() % CANS.length;
+  $('dailyName').textContent = CANS[idx].name + ' — ' + money(Math.round(CANS[idx].price*0.9));
+  CODES.DAY10 = 10;
+})();
 
 /* ===== مقایسه‌گر ===== */
-['vsA','vsB'].forEach((id,k)=>{
-  CANS.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c.name;$(id).appendChild(o)});
-  $(id).value=k===0?1:2;
-  $(id).onchange=updVs;
-});
-function updVs(){
-  const a=CANS[+$('vsA').value],b=CANS[+$('vsB').value];
-  $('vsOut').innerHTML=`<table><tr><th></th><th>${a.name}</th><th>${b.name}</th></tr>
-  <tr><td>قیمت</td><td>${money(a.price)}</td><td>${money(b.price)}</td></tr>
-  <tr><td>کافئین</td><td>${fa(a.caf)}mg</td><td>${fa(b.caf)}mg</td></tr>
-  <tr><td>فس‌فسک</td><td>${fa(a.fizz)}Hz</td><td>${fa(b.fizz)}Hz</td></tr></table>`;
+(function(){
+  const opts = CANS.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
+  $('vsA').innerHTML=opts; $('vsB').innerHTML=opts; $('vsA').value=1; $('vsB').value=2;
+  [$('vsA'),$('vsB')].forEach(s=>s.onchange=vsGo); vsGo();
+})();
+function vsGo(){
+  const a=CANS[+$('vsA').value], b=CANS[+$('vsB').value];
+  const w=(x)=>x.caf>=b.caf?`<b style="color:var(--ok)">${x.name}</b>`:x.name;
+  $('vsResult').innerHTML=`کافئین: ${w(a)} (${fa(a.caf)}) در برابر ${w(b)} (${fa(b.caf)})<br>قیمت: ${money(a.price)} در برابر ${money(b.price)}<br>برنده انرژی: <b>${a.caf>=b.caf?a.name:b.name}</b> 🏆`;
 }
-updVs();
+
+/* ===== اسلایدر شدت ===== */
+function filterByIntensity(v){
+  $('intVal').textContent = fa(v);
+  $('intList').innerHTML = CANS.filter(c=>c.caf<=+v).map(c=>`<label>✅ ${c.name} (${fa(c.caf)}mg)</label>`).join('') || '<p>هیچ طعمی اینقدر کافئین نداره!</p>';
+}
+
+/* ===== کافئین‌سنج ===== */
+$('weight').oninput = function(){
+  const max = Math.round(3 * (+this.value||70));
+  $('caffeineResult').innerHTML = `حداکثر کافئین مجاز روزانه تو حدود <b>${fa(max)} میلی‌گرم</b> است.`;
+};
+$('weight').oninput();
 
 /* ===== طعم‌سنج ===== */
 const QUIZ=[
-  {q:'معمولاً چقدر خسته‌ای؟',a:[['خیلی! 🔥',2],['متوسط 😐',1],['اصلاً 🌙',0]]},
-  {q:'طعم موردعلاقه‌ات؟',a:[['تند و پرحجم 🔥',2],['شیرین و دسر 🍦',5],['ترش و تازه 🍋',3]]},
-  {q:'شب‌بیداری یا روز؟',a:[['شب 🌙',0],['روز ☀️',3],['همیشه ⚡',1]]}
+ {q:'شیرینی دوست داری یا تلخی؟',a:[['شیرین','sweet'],['تلخ','bitter'],['نرم','soft']]},
+ {q:'چقدر انرژی لازم داری؟',a:[['خفیف','low'],['متوسط','mid'],['راکت','high']]},
+ {q:'قند محدود می‌کنی؟',a:[['بله','nosugar'],['نه','sugar']]},
 ];
-let qi=0;const qAns=[];
-function showQ(){
-  if(qi>=QUIZ.length){
-    const win=+qAns.sort((a,b)=>a-b)[0]??1;
-    selectCan(win);
-    $('quizQ').innerHTML=`<p>🍹 طعم تو: <b style="color:${CANS[win].color}">${CANS[win].name}</b> — ${CANS[win].desc}</p><button class="cta" onclick="addCart(${win})">همینو بگیر!</button>`;
-    missionDone('quiz');return;
-  }
-  $('quizQ').innerHTML=`<p><b>${fa(qi+1)}/${fa(QUIZ.length)}</b> — ${QUIZ[qi].q}</p>`;
-  QUIZ[qi].a.forEach(([txt,idx])=>{
-    const b=document.createElement('button');b.className='cta ghost';b.textContent=txt;
-    b.onclick=()=>{qAns.push(idx);qi++;showQ()};
-    $('quizQ').appendChild(b);
-  });
+let qi=0, ans={};
+function renderQuiz(){
+  if(qi>=QUIZ.length){ showQuizResult(); return; }
+  const q=QUIZ[qi];
+  $('quiz').innerHTML=`<h3>سوال ${fa(qi+1)} از ${fa(QUIZ.length)}</h3><p><b>${q.q}</b></p>`+
+    q.a.map(([t,k])=>`<button class="btn ghost" style="margin:5px" onclick="quizAns('${k}')">${t}</button>`).join('');
 }
-$('flavorQuizBtn').onclick=()=>{$('quizBox').scrollIntoView({behavior:'smooth'});qi=0;qAns.length=0;showQ()};
-
-/* ===== کافئین‌سنج ===== */
-$('wRange').oninput=e=>{
-  const w=+e.target.value;$('wVal').textContent=fa(w);
-  const mg=w*3;
-  $('cafOut').innerHTML=`حداکثر کافئین مجاز روزانه‌ی تو: <b style="color:var(--brand)">${fa(mg)}mg</b> ≈ ${fa(Math.floor(mg/160))} قوطی هپی‌لایف (هر قوطی ۱۶۰mg) ☕`;
-};
-$('wRange').oninput({target:$('wRange')});
+function quizAns(k){ ans[qi]=k; qi++; renderQuiz(); }
+function showQuizResult(){
+  const nosugar = Object.values(ans).includes('nosugar');
+  const high = Object.values(ans).includes('high');
+  const bitter = Object.values(ans).includes('bitter');
+  let pick = nosugar? CANS[3] : high? CANS[2] : bitter? CANS[0] : CANS[1];
+  $('quiz').innerHTML=`<h3>🥁 پیشنهاد ما:</h3><p><b style="color:var(--brand);font-size:1.3rem">${pick.name}</b></p>
+    <button class="btn main" onclick="addCart(${CANS.indexOf(pick)})">همینو بگیر!</button>
+    <button class="btn tiny" onclick="qi=0;ans={};renderQuiz()">دوباره</button>`;
+}
+renderQuiz();
 
 /* ===== باکس ترکیبی ===== */
-const mixSel=new Set([1,2,3]);
-CANS.forEach((c,i)=>{
-  const l=document.createElement('label');
-  l.innerHTML=`<input type="checkbox" ${mixSel.has(i)?'checked':''}> ${c.name}`;
-  l.querySelector('input').onchange=e=>{e.target.checked?mixSel.add(i):mixSel.delete(i);updMix()};
-  $('mixRow').appendChild(l);
-});
-function updMix(){
-  let sum=0;mixSel.forEach(i=>sum+=CANS[i].price);
-  if(mixSel.size===6){$('mixOut').innerHTML=`۶ طعم انتخاب شد ✅ قیمت با ٪۱۵ تخفیف: <b style="color:var(--brand)">${money(Math.round(sum*.85))}</b>`;return true}
-  $('mixOut').textContent=`${fa(mixSel.size)} از ۶ قوطی انتخاب شده — با کامل شدن باکس ٪۱۵ تخفیف می‌گیری!`;
-  return false;
+function renderMix(){
+  $('mixPick').innerHTML = CANS.map((c,i)=>`<label><input type="checkbox" class="mixChk" value="${i}" onchange="updMix()"> ${c.name} (${fa(c.price)})</label>`).join('');
+  updMix();
 }
-updMix();
-$('mixAdd').onclick=()=>{
-  if(!updMix())return toast('اول ۶ قوطی انتخاب کن! 🎁');
-  let s=0;mixSel.forEach(i=>addCart(i,true));
-  mixSel.forEach(i=>{const c=store.get('hl_cart',[]);c.push({i,box:true});store.set('hl_cart',c)});
-  renderCart();toast('🎁 باکس ترکیبی با ٪۱۵ تخفیف اضافه شد!');
-};
+function mixSel(){ return [...document.querySelectorAll('.mixChk:checked')].map(c=>+c.value); }
+function updMix(){
+  const sel=mixSel();
+  const sum=sel.reduce((s,i)=>s+CANS[i].price,0);
+  if(sum>0){ $('mixInfo').innerHTML=`${fa(sel.length)} قوطی — ${money(sum)} → با ۱۵٪ تخفیف: <b>${money(Math.round(sum*0.85))}</b> ✅`; }
+  else { $('mixInfo').textContent='حداقل یک طعم انتخاب کن'; }
+}
+function addMix(){
+  const sel=mixSel();
+  if(!sel.length){ toast('اول طعم‌ها رو انتخاب کن!'); return; }
+  sel.forEach(i=>cart.push({i,qty:1}));
+  store.set('hl_cart',cart); renderCart();
+  confetti(15); toast('باکس ترکیبی به سبد اضافه شد 🎁');
+}
 
 /* ===== چرخ شانس ===== */
-const WHEEL=[10,0,20,5,0,15];
-let spinning=false;
-$('spinBtn').onclick=()=>{
-  if(spinning)return;
-  const c=store.get('hl_coins',0);
-  if(c<15)return toast('کوین کافی نداری! 🪙');
-  store.set('hl_coins',c-15);renderCoins();
-  spinning=true;
-  const deg=1800+Math.random()*360;
-  $('wheel').style.transform=`rotate(${-deg}deg)`;
+const WHEEL_PRIZES=[['۵٪ تخفیف',5],['۱ کوین','coin'],['۱۵٪ تخفیف',15],['۲ کوین','coin2'],['ارسال رایگان','ship'],['بخت کم!','no']];
+let spinning=false, wheelDeg=0;
+function spinWheel(){
+  if(spinning) return; spinning=true;
+  wheelDeg += 1080 + Math.random()*360;
+  $('wheelEl').style.transform=`rotate(${wheelDeg}deg)`;
+  missionDone('spin');
   setTimeout(()=>{
-    const seg=Math.floor(((deg%360)/60))%6;
-    const prize=WHEEL[5-seg<0?5-seg+6:5-seg];
-    if(prize){const nc=store.get('hl_coins',0);store.set('hl_coins',nc+prize);renderCoins();$('wheelOut').textContent='🎉 '+fa(prize)+' هپی‌کوین بردی!'}
-    else $('wheelOut').textContent='😅 این بار چیزی نشد، دوباره امتحان کن!';
-    spinning=false;missionDone('spin');
-  },4100);
-};
+    spinning=false;
+    const idx = Math.floor(((360 - (wheelDeg%360)) % 360) / 60);
+    const [label,val]=WHEEL_PRIZES[idx];
+    if(val==='no'){ $('wheelMsg').textContent='ای بابا، دفعه بعد 🍀'; }
+    else{
+      if(typeof val==='number'){ disc=val; if(cart.length) renderCart(); }
+      else if(val==='coin'){ coins+=1; store.set('hl_coins',coins); }
+      else if(val==='coin2'){ coins+=2; store.set('hl_coins',coins); renderBoard(); }
+      else if(val==='ship'){ disc='ship'; }
+      $('wheelMsg').textContent=`🎉 جایزه: ${label}`;
+      confetti(20);
+    }
+  },3100);
+}
 
-/* ===== ماموریت‌های روزانه ===== */
-const MISSIONS=[['spin','چرخ شانس بچرخون',15],['quiz','طعم‌سنج رو کامل کن',15],['cart','یه خرید انجام بده',30],['share','سایت رو به اشتراک بذار',10],['gift','جعبه هدیه رو باز کن',10],['news','عضو خبرنامه شو',10]];
-function todayStr(){return new Date().toISOString().slice(0,10)}
-function missionDone(name){
-  const m=store.get('hl_missions',{date:todayStr(),done:[]});
-  if(m.date!==todayStr()){m.date=todayStr();m.done=[]}
-  if(m.done.includes(name))return;
-  m.done.push(name);store.set('hl_missions',m);
-  const mi=MISSIONS.find(x=>x[0]===name);
-  const c=store.get('hl_coins',0);store.set('hl_coins',c+mi[2]);renderCoins();
-  toast('📋 ماموریت انجام شد: '+mi[1]+' (+'+fa(mi[2])+' کوین)');
-  renderMissions();
+/* ===== ماموریت‌ها ===== */
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function missions(){
+  let m=store.get('hl_missions',null);
+  if(!m || m.date!==todayKey()){ m={date:todayKey(),view:false,spin:false,mix:false}; store.set('hl_missions',m); }
+  return m;
 }
 function renderMissions(){
-  const m=store.get('hl_missions',{date:todayStr(),done:[]});
-  $('missionList').innerHTML=MISSIONS.map(x=>`<li class="${m.done.includes(x[0])?'done':''}"><span>${x[1]}</span><b>+${fa(x[2])} 🪙</b></li>`).join('');
+  const m=missions();
+  const done=k=>m[k]?'✅ انجام شد':'⬜ در انتظار';
+  $('missionsBox').innerHTML=`
+    <div class="cart-line"><span>بازدید سه بخش مختلف — ${done('view')}</span></div>
+    <div class="cart-line"><span>یک‌بار چرخ شانس — ${done('spin')}</span></div>
+    <div class="cart-line"><span>ساخت باکس ترکیبی — ${done('mix')}</span></div>
+    <p>هر ماموریت = ۵ هپی‌کوین 🪙</p>`;
 }
-renderMissions();
-
-/* ===== جعبه هدیه ===== */
-let giftOpen=false;
-$('giftBox').onclick=()=>{
-  if(giftOpen)return toast('جعبه امروز باز شده! فردا بیا 🎁');
-  giftOpen=true;
-  const codes=Object.keys(CODES);
-  const code=codes[Math.floor(Math.random()*codes.length)];
-  $('giftOut').innerHTML=`🎉 هدیه‌ات: کد تخفیف <b style="color:var(--brand)">${code}</b>!`;
-  burstConfetti('#EAE32B');missionDone('gift');
-};
-
-/* ===== نمودار فروش ===== */
-[42,55,61,78,84,96].forEach((v,i)=>{
-  const b=document.createElement('div');b.className='bar';
-  b.style.height=v+'%';
-  b.innerHTML=`<b>${fa(v)}</b><i>${['فرور','ارد','خرد','تیر','مرد','شهر'][i]}</i>`;
-  $('chart').appendChild(b);
-});
-
-/* ===== گالری + لایت‌باکس ===== */
-const GAL=[['💜','linear-gradient(135deg,#7C3AED,#3b1d73)'],['🔥','linear-gradient(135deg,#F25C05,#7a2a00)'],['🍋','linear-gradient(135deg,#EAE32B,#8a8410)'],['❄️','linear-gradient(135deg,#38BDF8,#0c4a6e)'],['🍦','linear-gradient(135deg,#f2f0ea,#8a8880)'],['🌙','linear-gradient(135deg,#1c1c24,#4a4a58)']];
-GAL.forEach(([em,bg])=>{
-  const t=document.createElement('div');t.className='gTile';t.style.background=bg;t.textContent=em;
-  t.onclick=()=>{$('lbContent').style.background=bg;$('lbContent').textContent=em;$('lightbox').classList.add('open')};
-  $('gallery').appendChild(t);
-});
-$('lbClose').onclick=()=>$('lightbox').classList.remove('open');
-$('lightbox').onclick=e=>{if(e.target===$('lightbox'))$('lightbox').classList.remove('open')};
+function missionDone(k){ const m=missions(); if(!m[k]){ m[k]=true; store.set('hl_missions',m); coins+=5; store.set('hl_coins',coins); toast('ماموریت کامل شد! +۵ کوین 🪙'); renderMissions(); renderBoard(); } }
 
 /* ===== لیدربورد ===== */
-function renderLB(){
-  const lb=[['سارا',980],['امیر',860],['نگین',740],['رضا',620]];
-  lb.push(['تو ✨',store.get('hl_coins',0)]);
-  lb.sort((a,b)=>b[1]-a[1]);
-  $('lbList').innerHTML=lb.map((x,i)=>`<li class="${x[0]==='تو ✨'?'me':''}"><span>${fa(i+1)}. ${x[0]}</span><b>${fa(x[1])} 🪙</b></li>`).join('');
+function renderBoard(){
+  const rows=[['سارا',142],['امیر',128],['نگار',97],['تو',coins]].sort((a,b)=>b[1]-a[1]);
+  $('boardBox').innerHTML='<div class="cart-line"><b>نام</b><b>کوین 🪙</b></div>'+rows.map(([n,c],i)=>
+    `<div class="cart-line ${n==='تو'?'me':''}"><span>${['🥇','🥈','🥉','🏅'][i]} ${n}</span><b>${fa(c)}</b></div>`).join('');
 }
-renderLB();
 
-/* ===== هپی‌لایفرها ===== */
-[['سارا از شیراز','بنفش برقی زندگی‌م رو عوض کرد! 💜'],['امیر از تهران','فس‌فسک آبی یخی تو گرما معرکه‌ست ❄️'],['نگین از مشهد','طعم‌سنج دقیقاً طعم منو پیدا کرد!']],
-$('fans').innerHTML=[['سارا از شیراز','بنفش برقی زندگی‌م رو عوض کرد! 💜'],['امیر از تهران','فس‌فسک آبی یخی تو گرما معرکه‌ست ❄️'],['نگین از مشهد','طعم‌سنج دقیقاً طعم منو پیدا کرد!']].map(f=>`<div class="fan"><b>${f[0]}</b><p>${f[1]}</p></div>`).join('');
-
-/* ===== وبلاگ آکاردئون ===== */
-[['چرا بدون شکر اضافه؟','شکر اضافه انرژی کاذب میده؛ ما از شیرین‌کننده‌های طبیعی استفاده می‌کنیم تا انرژی واقعی و پایدار داشته باشی.'],
-['کافئین چقدر کافیه؟','متخصصان حداکثر ۳mg بر کیلوگرم وزن بدن رو توصیه می‌کنن. با کافئین‌سنج سایت محاسبه‌ش کن!'],
-['راز فس‌فسک قوطی‌ها','هر طعم فرکانس گاز متفاوتی داره؛ روی قوطی‌ها کلیک کن و صداها رو مقایسه کن! 🔊']]
-.forEach(([t,b])=>{
-  const d=document.createElement('div');d.className='acc';
-  d.innerHTML=`<div class="accH"><span>${t}</span><span>▼</span></div><div class="accB">${b}</div>`;
-  d.querySelector('.accH').onclick=()=>d.classList.toggle('open');
-  $('blogAcc').appendChild(d);
-});
-
-/* ===== نقشه + رادار ===== */
-$('osmMap').src='https://www.openstreetmap.org/export/embed.html?bbox=51.33,35.68,51.42,35.75&layer=mapnik&marker=35.715,51.375';
-$('radarBtn').onclick=()=>{
-  if(!navigator.geolocation)return $('radarOut').textContent='مرورگرت موقعیت‌یاب نداره 📡';
-  navigator.geolocation.getCurrentPosition(p=>{
-    const stores=[['فروشگاه مرکزی',35.72,51.38],['شعبه سعادت‌آباد',35.78,51.37],['شعبه ونک',35.76,51.41]];
-    const near=stores.map(s=>[s[0],Math.hypot((p.coords.latitude-s[1])*111,(p.coords.longitude-s[2])*111)]).sort((a,b)=>a[1]-b[1])[0];
-    $('radarOut').innerHTML=`📡 نزدیک‌ترین فروشگاه: <b style="color:var(--brand)">${near[0]}</b> (حدود ${fa(Math.round(near[1]))} کیلومتر)`;
-  },()=>{$('radarOut').textContent='دسترسی به موقعیت رد شد 📡'});
-};
-
-/* ===== فرم‌ها ===== */
-$('agBtn').onclick=()=>{
-  let ok=true;
-  [['agName'],['agCity'],['agPhone']].forEach(([id])=>{const el=$(id);el.classList.toggle('err',!el.value.trim());if(!el.value.trim())ok=false});
-  if(ok){toast('🤝 درخواست نمایندگی ثبت شد! باهات تماس می‌گیریم');missionDone('share')}
-};
-$('ctBtn').onclick=()=>{
-  let ok=true;
-  $('ctName').classList.toggle('err',!$('ctName').value.trim());
-  $('ctMail').classList.toggle('err',!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($('ctMail').value));
-  $('ctMsg').classList.toggle('err',!$('ctMsg').value.trim());
-  document.querySelectorAll('#contact .err').forEach(()=>ok=false);
-  if(ok){toast('✉️ پیامت رسید! زود جواب می‌دیم');$('ctMsg').value=''}
-};
-$('nlBtn').onclick=()=>{
-  const em=$('nlMail').value;
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ $('nlMail').classList.add('err');return toast('ایمیل معتبر وارد کن! 📮') }
-  $('nlMail').classList.remove('err');
-  const nl=store.get('hl_news',[]);
-  if(nl.includes(em))return toast('قبلاً عضو شدی! 😊');
-  nl.push(em);store.set('hl_news',nl);
-  const c=store.get('hl_coins',0);store.set('hl_coins',c+10);renderCoins();
-  toast('📮 عضو خبرنامه شدی! +۱۰ هپی‌کوین');missionDone('news');
-};
-
-/* ===== بازی قوطی‌گیر ===== */
-const cv=$('catchCv'),cx=cv.getContext('2d');
-let falling=[],cscore=0,catchOn=true;
-function newFall(){falling.push({x:Math.random()*300+10,y:-15,v:1+Math.random()*2.4,c:CANS[Math.floor(Math.random()*6)]})}
-setInterval(()=>{if(catchOn&&!noMotion&&falling.length<5)newFall()},900);
-cv.addEventListener('click',e=>{
-  const r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*(340/r.width),my=(e.clientY-r.top)*(220/r.height);
-  for(let k=falling.length-1;k>=0;k--){
-    const f=falling[k];
-    if(Math.abs(mx-f.x)<24&&Math.abs(my-f.y)<26){
-      falling.splice(k,1);cscore++;playFizz(Math.floor(Math.random()*6));burstConfetti(f.c.color);
-      $('catchScore').textContent=fa(cscore);
-      if(cscore%5===0){const c=store.get('hl_coins',0);store.set('hl_coins',c+5);renderCoins();toast('🪙 +۵ هپی‌کوین!')}
-      return;
-    }
-  }
-});
-(function catchLoop(){
-  cx.clearRect(0,0,340,220);
-  falling.forEach(f=>{f.y+=f.v;
-    cx.fillStyle=f.c.color;cx.fillRect(f.x-14,f.y-18,28,36);
-    cx.fillStyle='#8a8a96';cx.fillRect(f.x-7,f.y-22,14,5);
-  });
-  falling=falling.filter(f=>f.y<240);
-  requestAnimationFrame(catchLoop);
-})();
-
-/* ===== چت‌بات ===== */
-$('botFab').onclick=()=>$('botBox').classList.toggle('open');
-$('botClose').onclick=()=>$('botBox').classList.remove('open');
-function botMsg(txt,me){
-  const d=document.createElement('div');d.className='m'+(me?' me':'');d.textContent=txt;
-  $('botLog').appendChild(d);$('botLog').scrollTop=1e6;
+/* ===== امتیازدهی ===== */
+function ratings(){ return store.get('hl_ratings',{}); }
+function rateStars(i){
+  const r=ratings(); const mine=r[i]||0;
+  const all=Object.values(r); const avg = all.length? (all.reduce((a,b)=>a+b,0)/all.length).toFixed(1) : 4.5;
+  return [1,2,3,4,5].map(s=>`<span style="cursor:pointer;color:${s<=mine?'gold':'var(--muted)'}" onclick="setRate(${i},${s})">★</span>`).join('')
+    + ` <small>میانگین ${fa(avg)}</small>`;
 }
-function botReply(q){
-  q=q.toLowerCase();
-  if(q.includes('سلام'))return 'سلام! خوش اومدی به هپی‌لایف ⚡ چطور می‌تونم کمکت کنم؟';
-  if(q.includes('قیمت'))return 'قوطی‌ها از '+money(85000)+' تا '+money(95000)+' هستن 🍹';
-  if(q.includes('طعم'))return 'ما ۶ طعم داریم: کولا نایت، بنفش برقی، نارنجی آتش، زرد لیمویی، آبی یخی و سفید وانیلی! طعم‌سنج رو امتحان کن 🍹';
-  if(q.includes('کافئین'))return 'هر قوطی ۱۰۰ تا ۱۸۰ میلی‌گرم کافئین داره. کافئین‌سنج سایت محاسبه‌ش می‌کنه ☕';
-  if(q.includes('ارسال')||q.includes('پست'))return 'پست پیشتاز ۲۵ هزار تومان، پیک اختصاصی ۶۰ هزار تومان 🚚';
-  if(q.includes('فس')||q.includes('صدا'))return 'هر قوطی فس‌فسک اختصاصی خودشو داره! روی قوطی‌های آویزون کلیک کن و گوش کن 🔊';
-  if(q.includes('تخفیف')||q.includes('کد'))return 'کدهای فعال: HAPPY20، LIFE15، FALL25 و DAY10 🎟️';
-  if(q.includes('نمایندگی'))return 'فرم نمایندگی پایین صفحه هست! 🤝';
-  return 'اینو دقیق نمی‌دونم 😅 برای سوالات بیشتر به @hooshahelp پیام بده!';
-}
-function botSend(){
-  const v=$('botIn').value.trim();if(!v)return;
-  botMsg(v,true);$('botIn').value='';
-  setTimeout(()=>botMsg(botReply(v)),500);
-}
-$('botSend').onclick=botSend;
-$('botIn').onkeydown=e=>{if(e.key==='Enter')botSend()};
-botMsg('سلام! من دستیار هپی‌لایفم 🤖 درباره قیمت، طعم، کافئین و ارسال بپرس!');
-
-/* ===== سبد خرید و چک‌اوت ===== */
-let discount=0,freeShip=false;
-function cartCount(){return store.get('hl_cart',[]).length}
-function renderCoins(){const c=store.get('hl_coins',0);$('coinVal').textContent=fa(c);renderLB()}
-function renderCart(){
-  const c=store.get('hl_cart',[]);
-  $('cartBadge').textContent=fa(c.length);
-  $('cartList').innerHTML=c.length?c.map((x,k)=>`<div class="ci"><span>${CANS[x.i].name}${x.box?' (باکس)':''}</span><span>${money(CANS[x.i].price)} <b style="cursor:pointer" onclick="rmCart(${k})">🗑️</b></span></div>`).join(''):'<p>سبدت خالیه! 🛒</p>';
-}
-function rmCart(k){const c=store.get('hl_cart',[]);c.splice(k,1);store.set('hl_cart',c);renderCart()}
-function addCart(i,quiet){
-  const c=store.get('hl_cart',[]);c.push({i});store.set('hl_cart',c);renderCart();
-  if(!quiet){popSound();playFizz(i);toast('🛒 '+CANS[i].name+' به سبد اضافه شد!')}
-}
-$('cartBtn').onclick=()=>{showCo(1);$('cartModal').classList.add('open');renderCart()};
-$('cartClose').onclick=()=>$('cartModal').classList.remove('open');
-$('heroBuy').onclick=()=>$('cartBtn').onclick();
-function showCo(n){[1,2,3].forEach(i=>$('coStep'+i).style.display=i===n?'block':'none');if(n===2)updShip();if(n===3)updPay()}
-function cartSum(){let s=0;store.get('hl_cart',[]).forEach(x=>s+=CANS[x.i].price);return s}
-$('toStep2').onclick=()=>{
-  let ok=true;
-  [['coName'],['coAddr'],['coTel']].forEach(([id])=>{const el=$(id);el.classList.toggle('err',!el.value.trim());if(!el.value.trim())ok=false});
-  if(ok)showCo(2);else toast('اطلاعات آدرس رو کامل کن! 🚚');
-};
-function shipCost(){return freeShip?0:(document.querySelector('input[name=ship]:checked').value==='post'?25000:60000)}
-function updShip(){$('shipOut').innerHTML='هزینه ارسال: <b style="color:var(--brand)">'+(freeShip?'رایگان! 🎉':money(shipCost()))+'</b>'}
-document.querySelectorAll('input[name=ship]').forEach(r=>r.onchange=updShip);
-function total(){let s=cartSum();if(discount)s-=Math.round(s*discount/100);return s+shipCost()}
-function updPay(){$('paySum').innerHTML=`جمع سبد: ${money(cartSum())}<br>تخفیف: ${discount?'٪'+fa(discount):'ندارد'}<br>ارسال: ${freeShip?'رایگان':money(shipCost())}<br><b style="font-size:18px;color:var(--brand)">قابل پرداخت: ${money(total())}</b>`}
-$('toStep3').onclick=()=>{updPay();showCo(3)};
-$('payBtn').onclick=()=>{
-  const orders=store.get('hl_orders',[]);
-  const o={id:Date.now(),date:new Date().toLocaleDateString('fa-IR'),items:store.get('hl_cart',[]).map(x=>CANS[x.i].name),total:total(),ship:document.querySelector('input[name=ship]:checked').value==='post'?'پست':'پیک'};
-  orders.push(o);store.set('hl_orders',orders);store.set('hl_cart',[]);
-  const c=store.get('hl_coins',0);store.set('hl_coins',c+Math.round(total()/10000));renderCoins();
-  renderCart();missionDone('cart');
-  $('invoice').innerHTML=`<h2>🧾 فاکتور هپی‌لایف</h2><p>شماره: ${fa(o.id)} | تاریخ: ${o.date}</p><table><tr><th>محصول</th></tr>${o.items.map(n=>`<tr><td>${n}</td></tr>`).join('')}</table><p>ارسال: ${o.ship} | جمع کل: <b>${money(o.total)}</b></p><p style="color:#7C3AED">ممنون از خریدت! ⚡ هپی‌لایف</p><button class="cta" onclick="window.print()">🖨️ چاپ فاکتور</button> <button class="cta" onclick="document.getElementById('invoice').classList.remove('show')">بستن</button>`;
-  $('invoice').classList.add('show');
-  $('cartModal').classList.remove('open');
-  burstConfetti('#7C3AED');playFizz(dayIdx);
-  toast('✅ سفارش ثبت شد! هپی‌کوین هم گرفتی 🪙');
-  discount=0;freeShip=false;
-};
-/* کدهای تخفیف */
-function applyCode(code){
-  code=(code||$('codeIn').value).trim().toUpperCase();
-  if(!CODES[code])return $('codeOut').textContent='❌ کد نامعتبر!';
-  if(CODES[code]==='ship'){freeShip=true;discount=0;$('codeOut').textContent='🎉 ارسال رایگان فعال شد!'}
-  else{discount=CODES[code];freeShip=false;$('codeOut').textContent='🎉 ٪'+fa(CODES[code])+' تخفیف فعال شد!'}
-  toast('🎟️ کد '+code+' اعمال شد!');
-}
-$('codeBtn').onclick=()=>applyCode();
+function setRate(i,s){ const r=ratings(); r[i]=s; store.set('hl_ratings',r); renderCans(); toast('امتیازت ثبت شد ⭐'); }
 
 /* ===== سفارش‌های من ===== */
-const ords=store.get('hl_orders',[]);
-if(ords.length){
-  const d=document.createElement('div');d.className='card';
-  d.innerHTML='<h2>📦 سفارش‌های من</h2>'+ords.map(o=>`<div class="ci"><span>${o.date} — ${o.items.join('، ')}</span><b>${money(o.total)}</b></div>`).join('');
-  document.querySelector('footer').before(d);
+function renderOrders(){
+  const o=store.get('hl_orders',[]);
+  $('ordersBox').innerHTML = o.length? o.map(x=>`<div class="cart-line"><span>🗓 ${x.date} — ${fa(x.items)} قوطی</span><b>${money(x.total)}</b></div>`).join('') : '<p>هنوز سفارشی ثبت نکردی.</p>';
 }
 
-/* ===== اشتراک‌گذاری ===== */
-function shareSite(){
-  const data={title:'هپی‌لایف',text:'انرژی واقعی، بدون شکر اضافه ⚡',url:location.href};
-  if(navigator.share)navigator.share(data).catch(()=>{});
-  else{navigator.clipboard.writeText(location.href);toast('🔗 لینک کپی شد!')}
+/* ===== جعبه هدیه ===== */
+function addGift(){
+  cart.push({i:1,qty:6});
+  store.set('hl_cart',cart); renderCart(); toast('جعبه هدیه به سبد اضافه شد 🎁');
 }
-window.shareSite=shareSite;
-document.querySelector('#topbar .hbtns').insertAdjacentHTML('afterbegin','<button class="hbtn" onclick="shareSite()" title="اشتراک‌گذاری">🔗</button>');
+
+/* ===== شمارنده‌ها ===== */
+setInterval(()=>{
+  const now=new Date(), mid=new Date(now); mid.setHours(24,0,0,0);
+  const d=mid-now, h=Math.floor(d/3.6e6), m=Math.floor(d%3.6e6/6e4), s=Math.floor(d%6e4/1000);
+  $('sugTimer').textContent = `${fa(h)}:${fa(m)}:${fa(s)}`;
+  const camp=new Date(now); camp.setDate(camp.getDate()+ (7-((camp.getDay()+1)%7)));
+  camp.setHours(23,59,59);
+  const dc=camp-now;
+  $('campTimer').textContent=`${fa(Math.floor(dc/8.64e7))} روز و ${fa(Math.floor(dc%8.64e7/3.6e6))} ساعت`;
+},1000);
+
+/* ===== بازی ===== */
+let gameScore=0, gameRun=false;
+function startGame(){
+  gameScore=0; gameRun=true; $('gameScore').textContent='۰';
+  const area=$('gameArea'); area.innerHTML='';
+  setInterval(()=>{
+    if(!gameRun) return;
+    const bomb=Math.random()<0.3;
+    const el=document.createElement('div');
+    el.className='faller';
+    el.textContent=bomb?'💡':'🥫';
+    el.style.left=Math.random()*85+'%';
+    el.style.top='0px';
+    area.appendChild(el);
+    let y=0;
+    const fall=setInterval(()=>{
+      y+=8; el.style.top=y+'px';
+      if(y>area.clientHeight-40){ clearInterval(fall); el.remove(); }
+    },40);
+    el.addEventListener('pointerdown',()=>{
+      clearInterval(fall); el.remove();
+      if(bomb){ gameScore=Math.max(0,gameScore-2); popSound(); }
+      else{
+        gameScore++; playFizz(Math.floor(Math.random()*CANS.length));
+        if(gameScore%5===0){ coins++; store.set('hl_coins',coins); renderBoard(); toast('+۱ هپی‌کوین 🪙'); }
+      }
+      $('gameScore').textContent=fa(gameScore);
+    });
+  },700);
+}
+
+/* ===== رادار فروشگاه ===== */
+const STORES=[
+ {name:'فروشگاه ونک',x:35.757,y:51.410},
+ {name:'شعبه تجریش',x:35.803,y:51.434},
+ {name:'هپی‌مار صادقیه',x:35.717,y:51.340},
+];
+function findStore(){
+  if(!navigator.geolocation){ $('storeResult').textContent='مرورگرت موقعیت‌یاب نداره.'; return; }
+  navigator.geolocation.getCurrentPosition(p=>{
+    const {latitude:la,longitude:lo}=p.coords;
+    const near=STORES.map(s=>({...s,d:Math.hypot(s.x-la,s.y-lo)})).sort((a,b)=>a.d-b.d)[0];
+    $('storeResult').innerHTML=`نزدیک‌ترین: <b>${near.name}</b> (حدود ${fa(Math.round(near.d*111))} کیلومتر)`;
+    const m=$('map'); m.style.display='block';
+    const d=0.08;
+    m.src=`https://www.openstreetmap.org/export/embed.html?bbox=${lo-d}%2C${la-d}%2C${lo+d}%2C${la+d}&layer=mapnik&marker=${la}%2C${lo}`;
+    missionDone('view');
+  },()=>{ $('storeResult').textContent='اجازه موقعیت ندادی 🙈'; });
+}
+
+/* ===== وبلاگ ===== */
+const BLOGS=[
+ ['چطور انرژی سالم داشته باشیم؟','خواب کافی، آب زیاد و یک هپی‌لایف در میانه روز! کافئین متعادل یعنی خواب شب رو به هم نریزونی.'],
+ ['کافئین چقدر کافیه؟','۳ میلی‌گرم به ازای هر کیلو وزن بدن، سقف توصیه‌شده‌ی روزانه است. با کافئین‌سنج ما حسابش کن.'],
+ ['داستان طعم ۷','بعد از ۴۰ ترکیب ردشده، نوبت به ترکیب محرمانه‌ای رسید که تیم تولید اشکش دراومد...'],
+ ['بدون شکر، بدون کم‌بودن طعم','زرد لیمویی با شیرین‌کننده طبیعی، ثابت کرد سالم می‌تونه خوشمزه هم باشه.'],
+];
+$('blogBox').innerHTML=BLOGS.map(([t,b])=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${t}</span><span>＋</span></div><div class="acc-body"><p>${b}</p></div></div>`).join('');
+
+/* ===== گالری ===== */
+$('galleryBox').innerHTML=CANS.map((c,i)=>`<div class="g-item" style="background:linear-gradient(135deg,color-mix(in srgb,${c.color} 70%,#000),${c.color})" onclick="selectCan(${i});openLB(${i})" title="${c.name}"></div>`).join('');
+function openLB(i){
+  const c=CANS[i];
+  const img=$('lbImg');
+  img.style.background=`linear-gradient(135deg,color-mix(in srgb,${c.color} 70%,#000),${c.color})`;
+  img.src='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${c.color}"/><text x="200" y="210" text-anchor="middle" font-size="30" fill="#fff" font-family="sans-serif">${c.name}</text></svg>`);
+  $('lightbox').classList.add('open');
+}
+
+/* ===== نمودار فروش ===== */
+const SALES=[420,655,530,700,810,640,905], DAYS=['ش','ی','د','س','چ','پ','ج'];
+$('salesBars').innerHTML=SALES.map((v,i)=>`<div class="bar" style="height:${Math.round(v/905*100)}%"><span>${DAYS[i]}</span></div>`).join('');
 
 /* ===== جشن تولد ===== */
-$('bdayBtn').onclick=()=>{
-  applyCode('BDAY30');burstConfetti('#F25C05');playFizz(2);playFizz(3);
-  toast('🎂 تولد هپی‌لایف مبارک! کد BDAY30 فعال شد');
-};
+function simBday(){ confetti(60); playFizz(2); toast('🎂 تولد هپی‌لایف مبارک! کد BDAY30 فعاله'); }
 
-/* ===== تم / موشن / موزیک ===== */
-$('themeBtn').onclick=()=>document.body.classList.toggle('manual-light');
-$('motionBtn').onclick=()=>{noMotion=!noMotion;document.body.classList.toggle('no-motion',noMotion);toast(noMotion?'🐢 حالت کم‌حرکت فعال شد':'⚡ حرکت برگشت!')};
-let musicOn=false,musicInt=null;
-function toggleMusic(){
-  musicOn=!musicOn;
-  if(musicOn){
-    const ac=getAC();let step=0;
-    const notes=[262,330,392,523,392,330];
-    musicInt=setInterval(()=>{
-      const o=ac.createOscillator(),g=ac.createGain();
-      o.type='sine';o.frequency.value=notes[step%6];
-      g.gain.setValueAtTime(.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.4);
-      o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.45);step++;
-    },350);
-  }else clearInterval(musicInt);
-  toast(musicOn?'🎵 موزیک پخش شد':'🔇 موزیک خاموش شد');
+/* ===== فرم‌ها ===== */
+function submitContact(){
+  const n=$('cName').value, e=$('cEmail').value, m=$('cMsg').value;
+  [ $('cName'),$('cEmail'),$('cMsg') ].forEach(x=>x.classList.remove('err'));
+  let bad=false;
+  if(!n){ $('cName').classList.add('err'); bad=true; }
+  if(!/^\S+@\S+\.\S+$/.test(e)){ $('cEmail').classList.add('err'); bad=true; }
+  if(m.length<5){ $('cMsg').classList.add('err'); bad=true; }
+  if(bad){ toast('فیلدهای قرمز رو درست کن!'); return; }
+  $('cMsgOut').textContent='پیامت رسید! به‌زودی جواب می‌دیم ✅';
+  missionDone('view');
 }
-$('musicBtn').onclick=toggleMusic;
+function submitReseller(){
+  if(!$('resName').value||!$('resPhone').value||!$('resCity').value){ toast('همه فیلدها رو پر کن!'); return; }
+  $('resMsg').textContent=`درخواست ${$('resCity').value} ثبت شد ✅`;
+}
+function joinNews(){
+  if(store.get('hl_news')){ $('newsOut').textContent='قبلاً عضو شدی و کوینت رو گرفتی!'; return; }
+  if(!/^\S+@\S+\.\S+$/.test($('newsEmail').value)){ toast('ایمیل معتبر بذار!'); return; }
+  store.set('hl_news',true);
+  coins+=10; store.set('hl_coins',coins); renderBoard();
+  $('newsOut').textContent='عضویت انجام شد! +۱۰ هپی‌کوین 🪙'; confetti(15);
+}
 
-/* ===== جستجو و ۴۰۴ ===== */
-const KNOWN=['خانه','قوطی','قوطی‌ها','درباره','درباره ما','وبلاگ','گالری','نمایندگی','تماس','طعم','کافئین','چرخ','هدیه','ماموریت'];
-$('siteSearch').addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  const q=e.target.value.trim();if(!q)return;
-  if(KNOWN.some(k=>q.includes(k)||k.includes(q))){
-    toast('🔍 پیداش کردم! اسکرول کن پایین');document.getElementById('cans').scrollIntoView({behavior:'smooth'});
-  }else{
-    $('nfMsg').textContent='«'+q+'» توی سایت ما وجود نداره! 😵';
-    $('nf404').classList.add('open');
-  }
-});
-$('nfBack').onclick=()=>$('nf404').classList.remove('open');
-
-/* ===== ایستر اِگ: تایپ happy ===== */
-let buf='';
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
-  buf=(buf+e.key).toLowerCase().slice(-10);
-  if(buf.includes('happy')){buf='';burstConfetti('#7C3AED');toast('🤫 ایستر اِگ! کد LIFE15 یادت نره 😉')}
-});
+/* ===== چت‌بات ===== */
+const CHAT_RULES=[
+ [['قیمت','چند'],'قوطی‌ها بین ۸۵ تا ۹۵ هزار تومن هستن 🥫'],
+ [['ارسال','پست','پیک'],'پست ۲۵ هزار و پیک ۶۰ هزار تومنه 🚚'],
+ [['تخفیف','کد'],'کد HAPPY20 الان فعاله! کدهای دیگه: LIFE15 ، FALL25 ، BDAY30 🎟'],
+ [['کافئین'],'کافئین‌سنج بالای صفحه رو امتحان کن ☕'],
+ [['فس','صدا','گاز'],'هر قوطی فس‌فسک خودشو داره! روی قوطی‌ها کلیک کن و بشنو 🥫🎧'],
+ [['تماس','پشتیبان','سوال'],'برای پشتیبانی واقعی به @hooshahelp در تلگرام پیام بده 💬'],
+];
+function toggleChat(){ $('chatbot').classList.toggle('open'); }
+function botReply(t){
+  t=t.toLowerCase();
+  for(const [keys,ans] of CHAT_RULES) if(keys.some(k=>t.includes(k))) return ans;
+  return 'نشد بگیرم منظورت رو 😅 از این کلمات استفاده کن: قیمت، ارسال، تخفیف، کافئین، فس، پشتیبانی';
+}
+function sendChat(){
+  const v=$('chatIn').value.trim(); if(!v) return;
+  $('chatBody').insertAdjacentHTML('beforeend',`<div class="me">${v}</div>`);
+  $('chatIn').value='';
+  setTimeout(()=>{ $('chatBody').insertAdjacentHTML('beforeend',`<div class="bot">${botReply(v)}</div>`); $('chatBody').scrollTop=9e5; },400);
+}
+$('chatIn')?.addEventListener('keydown',e=>{ if(e.key==='Enter') sendChat(); });
+$('chatBody').innerHTML='<div class="bot">سلام! من پشتیبان هپی‌لایفم 🤖 بپرس!</div>';
 
 /* ===== خریدهای زنده ===== */
-const CITIES=['شیراز','تهران','مشهد','اصفهان','تبریز','کرج','رشت','یزد'];
-const NAMES=['علی','سارا','رضا','نگین','امیر','مریم','حسین','درسا'];
+const BUYERS=['علی از تهران','مهدی از شیراز','زهرا از اصفهان','کیانا از تبریز','حسین از مشهد'];
 setInterval(()=>{
-  if(document.hidden)return;
-  const n=NAMES[Math.floor(Math.random()*8)],c=CITIES[Math.floor(Math.random()*8)],i=Math.floor(Math.random()*6);
-  toast('🛍️ '+n+' از '+c+'، '+fa(1+Math.floor(Math.random()*3))+' قوطی '+CANS[i].name+' خرید!');
-},9000);
+  const c=CANS[Math.floor(Math.random()*6)];
+  toast(`🔥 ${BUYERS[Math.floor(Math.random()*5)]} چند قوطی ${c.name} خرید!`);
+},12000);
 
-/* ===== توست اولیه دکمه‌ها ===== */
-document.querySelector('#topbar .hbtns').addEventListener('click',()=>{});
+/* ===== ۴۰۴ ===== */
+const KNOWN=['home','about','products','daily','compare','intensity','caffeine','flavors','mixbox','game','wheel','missions','leaderboard','ratings','orders','gift','campaign','lifers','store','blog','gallery','chart','bday','reseller','contact','news'];
+addEventListener('hashchange',()=>{
+  const h=location.hash.slice(1);
+  if(h && !KNOWN.includes(h)) toast(`صفحه «${h}» پیدا نشد — به خانه برگشتی 🏠`);
+});
 
-/* ===== reveal ===== */
-const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:.12});
+/* ===== تم / حرکت / ریویل ===== */
+$('themeBtn').onclick=()=>{ document.body.classList.toggle('manual-light'); missionDone('view'); };
+$('motionBtn').onclick=()=>{ document.body.classList.toggle('no-motion'); toast(document.body.classList.contains('no-motion')?'حالت کم‌حرکت فعال شد 🐢':'حرکت برگشت 🏃'); };
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); missionDone('view'); } }),{threshold:.2});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-/* ===== کانفتی ===== */
-const cCv=$('confettiCv'),cCx=cCv.getContext('2d');
-function sizeCv(){cCv.width=innerWidth;cCv.height=innerHeight}
-sizeCv();addEventListener('resize',sizeCv);
-let parts=[];
-function burstConfetti(color){
-  for(let i=0;i<50;i++)parts.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*12,vy:-Math.random()*11-3,g:.32,s:4+Math.random()*5,c:color||CANS[Math.floor(Math.random()*6)].color,life:70});
+/* ===== موزیک پس‌زمینه (WebAudio) ===== */
+let musicOn=false, musicNodes=[];
+function toggleMusic(){
+  if(!musicOn){
+    const a=getAC();
+    const notes=[220,277,330,440];
+    let i=0;
+    musicNodes.push(setInterval(()=>{
+      const o=a.createOscillator(), g=a.createGain();
+      o.connect(g); g.connect(a.destination);
+      o.type='triangle'; o.frequency.value=notes[i++%4];
+      g.gain.setValueAtTime(.04,a.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);
+      o.start(); o.stop(a.currentTime+.5);
+    },500));
+    musicOn=true; toast('موزیک روشن شد 🎵');
+  } else {
+    musicNodes.forEach(clearInterval); musicNodes=[];
+    musicOn=false; toast('موزیک خاموش شد 🔇');
+  }
 }
-(function confLoop(){
-  cCx.clearRect(0,0,cCv.width,cCv.height);
-  parts=parts.filter(p=>p.life-->0&&p.y<cCv.height+20);
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;
-    cCx.fillStyle=p.c;cCx.fillRect(p.x,p.y,p.s,p.s);
-  });
-  requestAnimationFrame(confLoop);
-})();
 
-/* ===== لود اولیه ===== */
-renderCoins();renderCart();renderRate();
-</script>
+/* ===== init ===== */
+renderCans(); renderCart(); renderBoard(); renderMissions(); renderOrders(); renderMix(); filterByIntensity(200);
+document.querySelector('.suggestion-bar')?.addEventListener('click',toggleMusic);
+selectCan(1, true);
+requestAnimationFrame(pendulum);
